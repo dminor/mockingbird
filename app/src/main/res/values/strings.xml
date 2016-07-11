@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Mockingbird</string>
+    <string name="play_label">Play</string>
+    <string name="pause_label">Pause</string>
+    <string name="select_label">Select a Playlist:</string>
+    <string name="start_label">Start Playlist</string>
+</resources>
