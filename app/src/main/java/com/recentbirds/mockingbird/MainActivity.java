@@ -22,7 +22,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     int REQUEST_PERMISSION = 42;
-    String externalStoragePath = Environment.getExternalStorageDirectory().getPath() + "/Music";
+    String externalStoragePath = Environment.getExternalStorageDirectory().getPath();
 
     private ArrayList<String> paths;
     private ArrayAdapter<String> adapter;
@@ -33,6 +33,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(com.recentbirds.mockingbird.R.layout.activity_main);
 
+        // First check our own directory, then generic music directory, then fallback to just the
+        // sdcard path, which is not that helpful, but whatever.
+        String[] potentialStoragePaths = {externalStoragePath + "/Mockingbird",
+                                          externalStoragePath + "/mockingbird",
+                                          externalStoragePath + "/Music"};
+
+        for (String path : potentialStoragePaths) {
+            File dir = new File(path);
+            if (dir.exists() && dir.list().length > 0) {
+                externalStoragePath = path;
+                break;
+            }
+        }
 
         final ListView playlistView = (ListView) findViewById(com.recentbirds.mockingbird.R.id.playlistView);
 
@@ -58,8 +71,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             populateListView();
         }
-
-
 
         final Intent intent = new Intent(this, PlaylistActivity.class);
         final Button startPlaylistButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.startPlaylistButton);
