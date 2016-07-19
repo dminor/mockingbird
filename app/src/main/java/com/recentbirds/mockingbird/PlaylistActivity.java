@@ -10,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -141,27 +142,41 @@ public class PlaylistActivity extends AppCompatActivity {
     }
 
     public void indexSongs() {
-        //TODO: run this on a separate thread
-        Uri path = Uri.parse(playlistPath);
-        File dir = new File(path.getPath());
-        if (!dir.exists()) {
-            //Since we receive this value picked from a directory listing, this shouldn't normally
-            //happen.
-            return;
-        }
-        playlistSongs.clear();
-        for (String song : dir.list()) {
-            Uri uri = Uri.parse(playlistPath + "/" + song);
-            MediaPlayer mp = MediaPlayer.create(this, uri);
-            if (mp != null) {
-                playlistSongs.add(song);
-                mp.release();
+
+        final PlaylistActivity context = this;
+
+        class IndexFilesTask extends AsyncTask<String, Void, Integer> {
+            protected Integer doInBackground(String... paths) {
+                Uri path = Uri.parse(playlistPath);
+                File dir = new File(path.getPath());
+                if (!dir.exists()) {
+                    //Since we receive this value picked from a directory listing, this shouldn't normally
+                    //happen.
+                    return 1;
+                }
+                playlistSongs.clear();
+                for (String song : dir.list()) {
+                    Uri uri = Uri.parse(playlistPath + "/" + song);
+                    MediaPlayer mp = MediaPlayer.create(context, uri);
+                    if (mp != null) {
+                        playlistSongs.add(song);
+                        mp.release();
+                    }
+                }
+
+                return 0;
+            }
+
+            protected void onPostExecute(Integer result) {
+                if (result == 0) {
+                    shuffleSongs();
+                    currentSong = 0;
+                    playSong();
+                }
             }
         }
 
-        shuffleSongs();
-        currentSong = 0;
-        playSong();
+        new IndexFilesTask().execute();
     }
 
     public void shuffleSongs() {
