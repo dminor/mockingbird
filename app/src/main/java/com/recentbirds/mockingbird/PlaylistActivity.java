@@ -28,6 +28,7 @@ public class PlaylistActivity extends AppCompatActivity {
     private ArrayList<String> playlistSongs;
     private int currentSong;
     private boolean currentlyPlaying;
+    private int currentPosition;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +39,7 @@ public class PlaylistActivity extends AppCompatActivity {
         playlistSongs = new ArrayList<String>();
 
         currentlyPlaying = true;
+        currentPosition = 0;
 
         final Button playPauseButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.playPauseButton);
         if (playPauseButton != null) {
@@ -96,7 +98,9 @@ public class PlaylistActivity extends AppCompatActivity {
                                 shuffleSongs();
                                 currentSong = 0;
                             }
-                            playSong(0);
+                            currentlyPlaying = true;
+                            currentPosition = 0;
+                            playSong();
                         }
 
                         @Override
@@ -124,22 +128,23 @@ public class PlaylistActivity extends AppCompatActivity {
                     playPauseButton.setText(R.string.play_label);
                 }
             }
-            playSong(savedInstanceState.getInt("currentPosition"));
+            currentPosition = savedInstanceState.getInt("currentPosition");
+            playSong();
         } else {
             indexSongs();
         }
     }
 
     @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
-        Button playPauseButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.playPauseButton);
-        if (mediaPlayer != null && playPauseButton != null) {
-            //TODO: we should actually call mediaPlayer.release() here
+        if (mediaPlayer != null) {
             if (mediaPlayer.isPlaying()) {
-                playPauseButton.setText(com.recentbirds.mockingbird.R.string.play_label);
-                mediaPlayer.pause();
+                currentPosition = mediaPlayer.getCurrentPosition();
+                mediaPlayer.stop();
             }
+            mediaPlayer.release();
+            mediaPlayer = null;
         }
     }
 
@@ -156,16 +161,19 @@ public class PlaylistActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        playSong();
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putString("playlistPath", playlistPath);
         savedInstanceState.putStringArrayList("playlistSongs", playlistSongs);
         savedInstanceState.putInt("currentSong", currentSong);
         savedInstanceState.putBoolean("currentlyPlaying", currentlyPlaying);
-
-        if (mediaPlayer != null) {
-            savedInstanceState.putInt("currentPosition", mediaPlayer.getCurrentPosition());
-        }
+        savedInstanceState.putInt("currentPosition", currentPosition);
 
         TextView textView = (TextView) this.findViewById(com.recentbirds.mockingbird.R.id.songName);
         if (textView != null) {
@@ -203,7 +211,8 @@ public class PlaylistActivity extends AppCompatActivity {
                 if (result == 0) {
                     shuffleSongs();
                     currentSong = 0;
-                    playSong(0);
+                    currentPosition = 0;
+                    playSong();
                 }
             }
         }
@@ -224,7 +233,7 @@ public class PlaylistActivity extends AppCompatActivity {
         }
     }
 
-    public void playSong(int currentPosition) {
+    public void playSong() {
         if (playlistSongs.size() == 0) {
             return;
         }
@@ -278,6 +287,7 @@ public class PlaylistActivity extends AppCompatActivity {
                 public void onCompletion(MediaPlayer mp) {
                     playPauseButton.setText(com.recentbirds.mockingbird.R.string.play_label);
                     currentlyPlaying = false;
+                    currentPosition = 0;
                 }
             });
         }
