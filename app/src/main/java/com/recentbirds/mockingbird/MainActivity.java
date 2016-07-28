@@ -33,20 +33,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(com.recentbirds.mockingbird.R.layout.activity_main);
 
-        // First check our own directory, then generic music directory, then fallback to just the
-        // sdcard path, which is not that helpful, but whatever.
-        String[] potentialStoragePaths = {externalStoragePath + "/Mockingbird",
-                                          externalStoragePath + "/mockingbird",
-                                          externalStoragePath + "/Music"};
-
-        for (String path : potentialStoragePaths) {
-            File dir = new File(path);
-            if (dir.exists() && dir.list().length > 0) {
-                externalStoragePath = path;
-                break;
-            }
-        }
-
         final ListView playlistView = (ListView) findViewById(com.recentbirds.mockingbird.R.id.playlistView);
 
         paths = new ArrayList<String>();
@@ -99,6 +85,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void populateListView() {
+        // First check our own directory, then generic music directory, then fallback to just the
+        // sdcard path, which is not that helpful, but whatever.
+        String[] potentialStoragePaths = {externalStoragePath + "/Mockingbird",
+                externalStoragePath + "/mockingbird",
+                externalStoragePath + "/Music"};
+
+        for (String path : potentialStoragePaths) {
+            File dir = new File(path);
+            if (dir.exists() && dir.list() != null) {
+                externalStoragePath = path;
+                break;
+            }
+        }
+
         File dir = new File(externalStoragePath);
         for (String path : dir.list()) {
             paths.add(path);

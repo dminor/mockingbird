@@ -93,6 +93,7 @@ public class PlaylistActivity extends AppCompatActivity {
 
                         @Override
                         public void onAnimationEnd(Animation animation) {
+                            songName.setVisibility(View.INVISIBLE);
                             currentSong = currentSong + 1;
                             if (currentSong == playlistSongs.size()) {
                                 shuffleSongs();
