@@ -9,20 +9,32 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.recentbirds.mockingbird.PlaylistActivity">
 
-    <ImageView
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/playlistImageView"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Playlist"
+        android:id="@+id/playlistName"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/playlistImageView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:src="@drawable/singing_bird"
         android:background="#ffffff"
-        android:scaleType="fitEnd"
+        android:scaleType="centerCrop"
         android:importantForAccessibility="no"
-        android:layout_above="@+id/songName" />
+        android:layout_above="@+id/songName"
+        android:visibility="visible"
+        android:layout_below="@+id/playlistName" />
 
     <TextView
         android:layout_width="wrap_content"

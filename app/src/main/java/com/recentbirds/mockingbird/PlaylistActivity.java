@@ -1,6 +1,8 @@
 package com.recentbirds.mockingbird;
 
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -12,6 +14,7 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
@@ -24,6 +27,7 @@ public class PlaylistActivity extends AppCompatActivity {
     private Random random = new Random();
 
     private MediaPlayer mediaPlayer;
+    private String playlistImagePath;
     private String playlistPath;
     private ArrayList<String> playlistSongs;
     private int currentSong;
@@ -40,6 +44,12 @@ public class PlaylistActivity extends AppCompatActivity {
 
         currentlyPlaying = true;
         currentPosition = 0;
+
+        TextView playlistName = (TextView) findViewById(R.id.playlistName);
+        if (playlistName != null) {
+            String name = playlistPath.substring(playlistPath.lastIndexOf('/') + 1);
+            playlistName.setText(name);
+        }
 
         final Button playPauseButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.playPauseButton);
         if (playPauseButton != null) {
@@ -114,9 +124,13 @@ public class PlaylistActivity extends AppCompatActivity {
         }
 
         if(savedInstanceState != null) {
+            playlistImagePath = savedInstanceState.getString("playlistImagePath");
             playlistPath = savedInstanceState.getString("playlistPath");
             playlistSongs = savedInstanceState.getStringArrayList("playlistSongs");
             currentSong = savedInstanceState.getInt("currentSong");
+
+            setPlaylistImage();
+
             if (songName != null) {
                 songName.setVisibility(savedInstanceState.getInt("songNameVisibility"));
             }
@@ -170,6 +184,7 @@ public class PlaylistActivity extends AppCompatActivity {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putString("playlistImagePath", playlistImagePath);
         savedInstanceState.putString("playlistPath", playlistPath);
         savedInstanceState.putStringArrayList("playlistSongs", playlistSongs);
         savedInstanceState.putInt("currentSong", currentSong);
@@ -197,6 +212,12 @@ public class PlaylistActivity extends AppCompatActivity {
                 }
                 playlistSongs.clear();
                 for (String song : dir.list()) {
+                    String s = song.toLowerCase();
+                    if (s.endsWith(".jpeg") || s.endsWith(".jpg") || s.endsWith(".png")) {
+                        playlistImagePath = song;
+                        continue;
+                    }
+
                     Uri uri = Uri.parse(playlistPath + "/" + song);
                     MediaPlayer mp = MediaPlayer.create(context, uri);
                     if (mp != null) {
@@ -210,6 +231,7 @@ public class PlaylistActivity extends AppCompatActivity {
 
             protected void onPostExecute(Integer result) {
                 if (result == 0) {
+                    setPlaylistImage();
                     shuffleSongs();
                     currentSong = 0;
                     currentPosition = 0;
@@ -291,6 +313,36 @@ public class PlaylistActivity extends AppCompatActivity {
                     currentPosition = 0;
                 }
             });
+        }
+    }
+
+    public void setPlaylistImage() {
+        ImageView playlistImageView = (ImageView) findViewById(R.id.playlistImageView);
+        if (playlistImageView != null) {
+            int imageViewWidth = playlistImageView.getWidth();
+            int imageViewHeight = playlistImageView.getHeight();
+            if (playlistImagePath != null) {
+                String imagePath = playlistPath + "/" + playlistImagePath;
+
+                BitmapFactory.Options o = new BitmapFactory.Options();
+                o.inJustDecodeBounds = true;
+                Bitmap bm = BitmapFactory.decodeFile(imagePath, o);
+
+                int imageWidth = o.outWidth;
+                int imageHeight = o.outHeight;
+                int sampleSize = 1;
+                while (imageWidth > imageViewWidth || imageHeight > imageViewHeight) {
+                    imageWidth /= 2;
+                    imageHeight /= 2;
+                    sampleSize *= 2;
+                }
+                o.inSampleSize = sampleSize;
+                o.inJustDecodeBounds = false;
+                bm = BitmapFactory.decodeFile(imagePath, o);
+                playlistImageView.setImageBitmap(bm);
+            } else {
+                playlistImageView.setImageResource(android.R.color.transparent);
+            }
         }
     }
 }
