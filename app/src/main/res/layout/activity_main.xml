@@ -16,9 +16,10 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="@string/select_label"
         android:id="@+id/textView"
-        android:layout_alignRight="@+id/playlistView"
-        android:layout_alignEnd="@+id/playlistView"
+        android:textAlignment="textStart"
         android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
@@ -27,9 +28,12 @@
         android:layout_height="wrap_content"
         android:id="@+id/playlistView"
         android:footerDividersEnabled="true"
-        android:layout_below="@+id/textView"
         android:choiceMode="singleChoice"
         android:clickable="false"
+        android:layout_toEndOf="@+id/textView"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_above="@+id/startPlaylistButton" />
 
     <Button
@@ -41,6 +45,15 @@
         android:layout_alignParentBottom="true"
         android:layout_alignRight="@+id/playlistView"
         android:layout_alignEnd="@+id/playlistView"
+        android:layout_toRightOf="@+id/backButton"
+        android:layout_toEndOf="@+id/backButton" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Back"
+        android:id="@+id/backButton"
+        android:layout_alignTop="@+id/startPlaylistButton"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 </RelativeLayout>

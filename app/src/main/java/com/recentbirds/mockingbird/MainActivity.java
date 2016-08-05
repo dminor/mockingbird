@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     int REQUEST_PERMISSION = 42;
     String externalStoragePath = Environment.getExternalStorageDirectory().getPath();
 
+    private String currentWorkingDirectory;
     private ArrayList<String> paths;
     private ArrayAdapter<String> adapter;
     private String playlistPath;
@@ -43,9 +44,33 @@ public class MainActivity extends AppCompatActivity {
         playlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-
                 Object o = playlistView.getItemAtPosition(position);
                 playlistPath = (String)o;
+
+                //If the selected item is a directory and contains another directory, we will
+                //change the current working directory.
+                String newPath = currentWorkingDirectory + '/' + playlistPath;
+                File dir = new File(newPath);
+                if (dir.exists() && dir.isDirectory()) {
+                    boolean hasSubDirectory = false;
+                    for (String s : dir.list()) {
+                        if (s.startsWith(".")) {
+                            //Attempt to ignore hidden files and directories
+                            continue;
+                        }
+
+                        File f = new File(newPath + '/' + s);
+                        if (f.exists() && f.isDirectory()) {
+                            hasSubDirectory = true;
+                            break;
+                        }
+                    }
+
+                    if (hasSubDirectory) {
+                        currentWorkingDirectory = newPath;
+                        populateListView();
+                    }
+                }
             }
         });
 
@@ -59,12 +84,25 @@ public class MainActivity extends AppCompatActivity {
         }
 
         final Intent intent = new Intent(this, PlaylistActivity.class);
+
+        final Button backButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.backButton);
+        if (backButton != null) {
+            backButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    if (currentWorkingDirectory != null && !currentWorkingDirectory.equals(externalStoragePath)) {
+                        currentWorkingDirectory = currentWorkingDirectory.substring(0, currentWorkingDirectory.lastIndexOf('/'));
+                        populateListView();
+                    }
+                }
+            });
+        }
+
         final Button startPlaylistButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.startPlaylistButton);
         if (startPlaylistButton != null) {
             startPlaylistButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     if (playlistPath != null) {
-                        intent.putExtra("playlistPath", externalStoragePath +  "/" + playlistPath);
+                        intent.putExtra("playlistPath", currentWorkingDirectory +  "/" + playlistPath);
                         startActivity(intent);
                     }
                 }
@@ -91,18 +129,25 @@ public class MainActivity extends AppCompatActivity {
                 externalStoragePath + "/mockingbird",
                 externalStoragePath + "/Music"};
 
-        for (String path : potentialStoragePaths) {
-            File dir = new File(path);
-            if (dir.exists() && dir.list() != null) {
-                externalStoragePath = path;
-                break;
+
+        if (currentWorkingDirectory == null) {
+            for (String path : potentialStoragePaths) {
+                File dir = new File(path);
+                if (dir.exists() && dir.list() != null) {
+                    currentWorkingDirectory = path;
+                    break;
+                }
             }
         }
 
-        File dir = new File(externalStoragePath);
-        for (String path : dir.list()) {
-            paths.add(path);
+        paths.clear();
+
+        File dir = new File(currentWorkingDirectory);
+        if (dir.exists() && dir.isDirectory()) {
+            for (String path : dir.list()) {
+                paths.add(path);
+            }
+            adapter.notifyDataSetChanged();
         }
-        adapter.notifyDataSetChanged();
     }
 }
