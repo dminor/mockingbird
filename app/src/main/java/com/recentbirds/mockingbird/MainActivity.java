@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
                     if (hasSubDirectory) {
                         currentWorkingDirectory = newPath;
+                        playlistPath = null;
                         populateListView();
                     }
                 }
@@ -145,7 +146,10 @@ public class MainActivity extends AppCompatActivity {
         File dir = new File(currentWorkingDirectory);
         if (dir.exists() && dir.isDirectory()) {
             for (String path : dir.list()) {
-                paths.add(path);
+                File f = new File(currentWorkingDirectory + '/' + path);
+                if (f.exists() && f.isDirectory()) {
+                    paths.add(path);
+                }
             }
             adapter.notifyDataSetChanged();
         }
