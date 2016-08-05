@@ -18,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -211,6 +212,8 @@ public class PlaylistActivity extends AppCompatActivity {
                     return 1;
                 }
                 playlistSongs.clear();
+
+                MediaPlayer mp = new MediaPlayer();
                 for (String song : dir.list()) {
                     String s = song.toLowerCase();
                     if (s.endsWith(".jpeg") || s.endsWith(".jpg") || s.endsWith(".png")) {
@@ -219,12 +222,16 @@ public class PlaylistActivity extends AppCompatActivity {
                     }
 
                     Uri uri = Uri.parse(playlistPath + "/" + song);
-                    MediaPlayer mp = MediaPlayer.create(context, uri);
-                    if (mp != null) {
-                        playlistSongs.add(song);
-                        mp.release();
+                    try {
+                        mp.reset();
+                        mp.setDataSource(context, uri);
+                    } catch (IOException e) {
+                        continue;
                     }
+
+                    playlistSongs.add(song);
                 }
+                mp.release();
 
                 return 0;
             }
@@ -261,16 +268,21 @@ public class PlaylistActivity extends AppCompatActivity {
             return;
         }
 
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            mediaPlayer.stop();
-            mediaPlayer.release();
+        if (mediaPlayer == null) {
+            mediaPlayer = new MediaPlayer();
+        } else {
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+            }
+            mediaPlayer.reset();
         }
 
         String fileName = playlistSongs.get(currentSong);
         Uri song = Uri.parse(playlistPath + "/" + fileName);
-        mediaPlayer = MediaPlayer.create(this, song);
-        if (mediaPlayer == null) {
-            //TODO: this should not normally happen since we check each song while indexing
+        try {
+            mediaPlayer.setDataSource(this, song);
+            mediaPlayer.prepare();
+        } catch (IOException e) {
             return;
         }
 
