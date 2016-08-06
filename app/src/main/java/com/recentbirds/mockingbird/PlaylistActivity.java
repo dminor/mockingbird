@@ -198,7 +198,7 @@ public class PlaylistActivity extends AppCompatActivity {
         }
     }
 
-    public void indexSongs() {
+    private void indexSongs() {
 
         final PlaylistActivity context = this;
 
@@ -250,20 +250,30 @@ public class PlaylistActivity extends AppCompatActivity {
         new IndexFilesTask().execute();
     }
 
-    public void shuffleSongs() {
-        // Shuffle songs. At some point we might want to adapt this based on error rates in
-        // identifying the birds, e.g. use a "three deck" system.
-        int length = playlistSongs.size();
-        for (int i = 0; i < length - 1; ++i) {
-            int j = i + random.nextInt(length - i);
-            String s = playlistSongs.get(i);
-            String t = playlistSongs.get(j);
-            playlistSongs.set(i, t);
-            playlistSongs.set(j, s);
+    private String prettifySongName(Uri uri, String fileName) {
+        // Attempt to get song name from media metadata. If it is not set or this just fails, we try
+        // to do something sensible with the file name itself.
+        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+        mmr.setDataSource(this, uri);
+        String songName = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+        if (songName == null || songName.length() == 0) {
+            int lastdot = fileName.lastIndexOf('.');
+            if (lastdot != -1) {
+                songName = fileName.substring(0, lastdot);
+            } else {
+                songName = fileName;
+            }
+
+            // Attempt to trim leading and trailing numbers, dots, etc. that might be part of a
+            // filename that don't really belong in a song name.
+            songName = songName.replaceAll("^[0-9 -.]+", "");
+            songName = songName.replaceAll("[0-9 -.]+$", "");
         }
+
+        return songName;
     }
 
-    public void playSong() {
+    private void playSong() {
         if (playlistSongs.size() == 0) {
             return;
         }
@@ -292,19 +302,8 @@ public class PlaylistActivity extends AppCompatActivity {
             mediaPlayer.start();
         }
 
-        // Attempt to get song name from media metadata. If it is not set or this just fails, we try
-        // to do something sensible with the file name itself.
-        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-        mmr.setDataSource(this, song);
-        String songName = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-        if (songName == null || songName.length() == 0) {
-            int lastdot = fileName.lastIndexOf('.');
-            if (lastdot != -1) {
-                songName = fileName.substring(0, lastdot);
-            } else {
-                songName = fileName;
-            }
-        }
+        String songName = prettifySongName(song, fileName);
+
         final TextView textView = (TextView) this.findViewById(com.recentbirds.mockingbird.R.id.songName);
         if (textView != null) {
             textView.setText(songName);
@@ -328,7 +327,7 @@ public class PlaylistActivity extends AppCompatActivity {
         }
     }
 
-    public void setPlaylistImage() {
+    private void setPlaylistImage() {
         ImageView playlistImageView = (ImageView) findViewById(R.id.playlistImageView);
         if (playlistImageView != null) {
             int imageViewWidth = playlistImageView.getWidth();
@@ -355,6 +354,19 @@ public class PlaylistActivity extends AppCompatActivity {
             } else {
                 playlistImageView.setImageResource(android.R.color.transparent);
             }
+        }
+    }
+
+    private void shuffleSongs() {
+        // Shuffle songs. At some point we might want to adapt this based on error rates in
+        // identifying the birds, e.g. use a "three deck" system.
+        int length = playlistSongs.size();
+        for (int i = 0; i < length - 1; ++i) {
+            int j = i + random.nextInt(length - i);
+            String s = playlistSongs.get(i);
+            String t = playlistSongs.get(j);
+            playlistSongs.set(i, t);
+            playlistSongs.set(j, s);
         }
     }
 }
