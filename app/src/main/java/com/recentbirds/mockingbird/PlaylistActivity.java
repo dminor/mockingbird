@@ -328,16 +328,19 @@ public class PlaylistActivity extends AppCompatActivity {
     }
 
     private void setPlaylistImage() {
-        ImageView playlistImageView = (ImageView) findViewById(R.id.playlistImageView);
-        if (playlistImageView != null) {
-            int imageViewWidth = playlistImageView.getWidth();
-            int imageViewHeight = playlistImageView.getHeight();
-            if (playlistImagePath != null) {
+        final ImageView playlistImageView = (ImageView) findViewById(R.id.playlistImageView);
+        final int imageViewWidth = playlistImageView.getWidth();
+        final int imageViewHeight = playlistImageView.getHeight();
+
+        class LoadImageTask extends AsyncTask<String, Void, Integer> {
+            private Bitmap bm;
+
+            protected Integer doInBackground(String... paths) {
                 String imagePath = playlistPath + "/" + playlistImagePath;
 
                 BitmapFactory.Options o = new BitmapFactory.Options();
                 o.inJustDecodeBounds = true;
-                Bitmap bm = BitmapFactory.decodeFile(imagePath, o);
+                bm = BitmapFactory.decodeFile(imagePath, o);
 
                 int imageWidth = o.outWidth;
                 int imageHeight = o.outHeight;
@@ -350,7 +353,20 @@ public class PlaylistActivity extends AppCompatActivity {
                 o.inSampleSize = sampleSize;
                 o.inJustDecodeBounds = false;
                 bm = BitmapFactory.decodeFile(imagePath, o);
-                playlistImageView.setImageBitmap(bm);
+
+                return 0;
+            }
+
+            protected void onPostExecute(Integer result) {
+                if (result == 0 && bm != null) {
+                    playlistImageView.setImageBitmap(bm);
+                }
+            }
+        }
+
+        if (playlistImageView != null) {
+            if (playlistImagePath != null) {
+                new LoadImageTask().execute();
             } else {
                 playlistImageView.setImageResource(android.R.color.transparent);
             }
