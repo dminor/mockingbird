@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
@@ -28,8 +29,9 @@ public class PlaylistActivity extends AppCompatActivity {
     private Random random = new Random();
 
     private MediaPlayer mediaPlayer;
-    private String playlistImagePath;
     private String playlistPath;
+    private ArrayList<String> playlistImages;
+    private int currentImage;
     private ArrayList<String> playlistSongs;
     private int currentSong;
     private boolean currentlyPlaying;
@@ -41,6 +43,7 @@ public class PlaylistActivity extends AppCompatActivity {
         setContentView(com.recentbirds.mockingbird.R.layout.activity_playlist);
 
         playlistPath =  getIntent().getStringExtra("playlistPath");
+        playlistImages = new ArrayList<String>();
         playlistSongs = new ArrayList<String>();
 
         currentlyPlaying = true;
@@ -107,7 +110,12 @@ public class PlaylistActivity extends AppCompatActivity {
                             songName.setVisibility(View.INVISIBLE);
                             currentSong = currentSong + 1;
                             if (currentSong == playlistSongs.size()) {
-                                shuffleSongs();
+                                currentImage = currentImage + 1;
+                                if (currentImage == playlistImages.size()) {
+                                    currentImage = 0;
+                                }
+                                setPlaylistImage();
+                                shuffle(playlistSongs);
                                 currentSong = 0;
                             }
                             currentlyPlaying = true;
@@ -125,9 +133,10 @@ public class PlaylistActivity extends AppCompatActivity {
         }
 
         if(savedInstanceState != null) {
-            playlistImagePath = savedInstanceState.getString("playlistImagePath");
             playlistPath = savedInstanceState.getString("playlistPath");
+            playlistImages = savedInstanceState.getStringArrayList("playlistImages");
             playlistSongs = savedInstanceState.getStringArrayList("playlistSongs");
+            currentImage = savedInstanceState.getInt("currentImage");
             currentSong = savedInstanceState.getInt("currentSong");
 
             setPlaylistImage();
@@ -185,9 +194,10 @@ public class PlaylistActivity extends AppCompatActivity {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putString("playlistImagePath", playlistImagePath);
+        savedInstanceState.putStringArrayList("playlistImages", playlistImages);
         savedInstanceState.putString("playlistPath", playlistPath);
         savedInstanceState.putStringArrayList("playlistSongs", playlistSongs);
+        savedInstanceState.putInt("currentImage", currentImage);
         savedInstanceState.putInt("currentSong", currentSong);
         savedInstanceState.putBoolean("currentlyPlaying", currentlyPlaying);
         savedInstanceState.putInt("currentPosition", currentPosition);
@@ -217,7 +227,7 @@ public class PlaylistActivity extends AppCompatActivity {
                 for (String song : dir.list()) {
                     String s = song.toLowerCase();
                     if (s.endsWith(".jpeg") || s.endsWith(".jpg") || s.endsWith(".png")) {
-                        playlistImagePath = song;
+                        playlistImages.add(song);
                         continue;
                     }
 
@@ -238,8 +248,9 @@ public class PlaylistActivity extends AppCompatActivity {
 
             protected void onPostExecute(Integer result) {
                 if (result == 0) {
+                    shuffle(playlistImages);
                     setPlaylistImage();
-                    shuffleSongs();
+                    shuffle(playlistSongs);
                     currentSong = 0;
                     currentPosition = 0;
                     playSong();
@@ -329,14 +340,20 @@ public class PlaylistActivity extends AppCompatActivity {
 
     private void setPlaylistImage() {
         final ImageView playlistImageView = (ImageView) findViewById(R.id.playlistImageView);
-        final int imageViewWidth = playlistImageView.getWidth();
-        final int imageViewHeight = playlistImageView.getHeight();
 
         class LoadImageTask extends AsyncTask<String, Void, Integer> {
+            private int imageViewWidth;
+            private int imageViewHeight;
             private Bitmap bm;
 
+            protected void onPreExecute() {
+                imageViewWidth = playlistImageView.getWidth();
+                imageViewHeight = playlistImageView.getHeight();
+            }
+
             protected Integer doInBackground(String... paths) {
-                String imagePath = playlistPath + "/" + playlistImagePath;
+
+                String imagePath = playlistPath + "/" + playlistImages.get(currentImage);
 
                 BitmapFactory.Options o = new BitmapFactory.Options();
                 o.inJustDecodeBounds = true;
@@ -364,25 +381,29 @@ public class PlaylistActivity extends AppCompatActivity {
             }
         }
 
-        if (playlistImageView != null) {
-            if (playlistImagePath != null) {
-                new LoadImageTask().execute();
-            } else {
-                playlistImageView.setImageResource(android.R.color.transparent);
+        // We want to execute after layout has completed so that we have the ImageView height
+        // and width available.
+        playlistImageView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                playlistImageView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                if (!playlistImages.isEmpty()) {
+                    new LoadImageTask().execute();
+                } else {
+                    playlistImageView.setImageResource(android.R.color.transparent);
+                }
             }
-        }
+        });
     }
 
-    private void shuffleSongs() {
-        // Shuffle songs. At some point we might want to adapt this based on error rates in
-        // identifying the birds, e.g. use a "three deck" system.
-        int length = playlistSongs.size();
+    private void shuffle(ArrayList<String> arrayList) {
+        int length = arrayList.size();
         for (int i = 0; i < length - 1; ++i) {
             int j = i + random.nextInt(length - i);
-            String s = playlistSongs.get(i);
-            String t = playlistSongs.get(j);
-            playlistSongs.set(i, t);
-            playlistSongs.set(j, s);
+            String s = arrayList.get(i);
+            String t = arrayList.get(j);
+            arrayList.set(i, t);
+            arrayList.set(j, s);
         }
     }
 }
