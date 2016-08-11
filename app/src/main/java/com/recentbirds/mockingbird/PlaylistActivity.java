@@ -1,6 +1,5 @@
 package com.recentbirds.mockingbird;
 
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
@@ -89,9 +88,14 @@ public class PlaylistActivity extends AppCompatActivity {
         }
 
         final Button nextButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.nextButton);
-        if (nextButton != null) {
+        if (songName != null && nextButton != null) {
             nextButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
+                    if (songName.getAnimation() != null) {
+                        // Prevent multiple presses while animation is running
+                        return;
+                    }
+
                     if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                         mediaPlayer.stop();
                     }
@@ -102,7 +106,6 @@ public class PlaylistActivity extends AppCompatActivity {
                     fadeOut.setAnimationListener(new Animation.AnimationListener() {
                         @Override
                         public void onAnimationStart(Animation animation) {
-
                         }
 
                         @Override
@@ -170,18 +173,6 @@ public class PlaylistActivity extends AppCompatActivity {
             }
             mediaPlayer.release();
             mediaPlayer = null;
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(final int requestCode, @NonNull final String[] permissions, @NonNull final int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                indexSongs();
-            } else {
-                // TODO: User refused to grant permission.
-            }
         }
     }
 
@@ -340,6 +331,10 @@ public class PlaylistActivity extends AppCompatActivity {
 
     private void setPlaylistImage() {
         final ImageView playlistImageView = (ImageView) findViewById(R.id.playlistImageView);
+
+        if (playlistImageView == null) {
+            return;
+        }
 
         class LoadImageTask extends AsyncTask<String, Void, Integer> {
             private int imageViewWidth;

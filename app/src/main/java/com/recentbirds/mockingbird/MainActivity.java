@@ -1,6 +1,8 @@
 package com.recentbirds.mockingbird;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -35,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(com.recentbirds.mockingbird.R.layout.activity_main);
 
         final ListView playlistView = (ListView) findViewById(com.recentbirds.mockingbird.R.id.playlistView);
+        if (playlistView == null) {
+            return;
+        }
 
         paths = new ArrayList<String>();
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, paths);
@@ -118,7 +123,15 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 populateListView();
             } else {
-                // TODO: User refused to grant permission.
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage(R.string.no_permission_message)
+                        .setTitle(R.string.no_permission_title)
+                        .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                finish();
+                            }
+                        });
+                builder.create().show();
             }
         }
     }

@@ -4,4 +4,7 @@
     <string name="pause_label">Pause</string>
     <string name="select_label">Select a Playlist:</string>
     <string name="start_label">Start Playlist</string>
+    <string name="ok">OK</string>
+    <string name="no_permission_title">Nothing to do...</string>
+    <string name="no_permission_message">Without accessing external storage, no songs can be played.</string>
 </resources>
