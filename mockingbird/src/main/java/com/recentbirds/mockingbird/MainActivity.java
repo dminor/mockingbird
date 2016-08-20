@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -46,13 +47,25 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(com.recentbirds.mockingbird.R.layout.activity_main);
 
-        final Intent intent = new Intent(this, ChoosePlaylistActivity.class);
+        PreferenceManager.setDefaultValues(this, R.xml.settings, false);
 
-        final Button choosePlaylistButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.choosePlaylistButton);
+        final Intent choosePlaylistIntent = new Intent(this, ChoosePlaylistActivity.class);
+
+        final Button choosePlaylistButton = (Button) findViewById(R.id.choosePlaylistButton);
         if (choosePlaylistButton != null) {
             choosePlaylistButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    startActivity(intent);
+                    startActivity(choosePlaylistIntent);
+                }
+            });
+        }
+
+        final Intent settingsIntent = new Intent(this, SettingsActivity.class);
+        final Button settingsButton = (Button) findViewById(R.id.settingsButton);
+        if (settingsButton != null) {
+            settingsButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    startActivity(settingsIntent);
                 }
             });
         }

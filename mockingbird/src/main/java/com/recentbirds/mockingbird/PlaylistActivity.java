@@ -16,11 +16,14 @@
 */
 package com.recentbirds.mockingbird;
 
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.preference.PreferenceManager;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.AsyncTask;
@@ -36,6 +39,7 @@ import android.widget.TextView;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Random;
 
 public class PlaylistActivity extends AppCompatActivity {
@@ -51,6 +55,9 @@ public class PlaylistActivity extends AppCompatActivity {
     private int currentSong;
     private boolean currentlyPlaying;
     private int currentPosition;
+
+    private TextToSpeech textToSpeech;
+    private boolean useTextToSpeech;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +105,9 @@ public class PlaylistActivity extends AppCompatActivity {
                         songName.setVisibility(View.INVISIBLE);
                     } else {
                         songName.setVisibility(View.VISIBLE);
+                        if (textToSpeech != null && useTextToSpeech) {
+                            textToSpeech.speak(songName.getText().toString(), TextToSpeech.QUEUE_FLUSH, null);
+                        }
                     };
                 }
             });
@@ -115,6 +125,11 @@ public class PlaylistActivity extends AppCompatActivity {
                     if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                         mediaPlayer.stop();
                     }
+
+                    if (useTextToSpeech && textToSpeech != null && songName.getVisibility() != View.VISIBLE ) {
+                        textToSpeech.speak(songName.getText().toString(), TextToSpeech.QUEUE_FLUSH, null);
+                    }
+
                     songName.setVisibility(View.VISIBLE);
                     final Animation fadeOut = new AlphaAnimation(1.0f, 0.0f);
                     fadeOut.setDuration(1000);
@@ -151,6 +166,23 @@ public class PlaylistActivity extends AppCompatActivity {
             });
         }
 
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
+        useTextToSpeech = sharedPref.getBoolean("pref_say_answers", false);
+        if (useTextToSpeech) {
+            textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+                @Override
+                public void onInit(int status) {
+                    if (status == TextToSpeech.SUCCESS) {
+                        int result = textToSpeech.setLanguage(Locale.US);
+                        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                            useTextToSpeech = false;
+                        }
+                    }
+                }
+            });
+        }
+
         if(savedInstanceState != null) {
             playlistPath = savedInstanceState.getString("playlistPath");
             playlistImages = savedInstanceState.getStringArrayList("playlistImages");
@@ -180,6 +212,14 @@ public class PlaylistActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onDestroy() {
+        if (textToSpeech != null) {
+            textToSpeech.shutdown();
+        }
+        super.onDestroy();
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
         if (mediaPlayer != null) {
@@ -196,6 +236,14 @@ public class PlaylistActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         playSong();
+    }
+
+    @Override
+    public void onStop() {
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+        }
+        super.onStop();
     }
 
     @Override
@@ -273,7 +321,7 @@ public class PlaylistActivity extends AppCompatActivity {
         // to do something sensible with the file name itself.
         MediaMetadataRetriever mmr = new MediaMetadataRetriever();
         mmr.setDataSource(this, uri);
-        String songName = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+        String songName = null;//mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
         if (songName == null || songName.length() == 0) {
             int lastdot = fileName.lastIndexOf('.');
             if (lastdot != -1) {
@@ -286,6 +334,9 @@ public class PlaylistActivity extends AppCompatActivity {
             // filename that don't really belong in a song name.
             songName = songName.replaceAll("^[0-9 -.]+", "");
             songName = songName.replaceAll("[0-9 -.]+$", "");
+
+            // Remove parentheses, no one cares about latin anyway
+            songName = songName.replaceAll("[(].+[)]", "");
         }
 
         return songName;
