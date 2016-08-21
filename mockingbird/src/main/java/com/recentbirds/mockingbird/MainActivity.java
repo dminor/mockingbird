@@ -41,149 +41,20 @@ import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity {
 
-    int REQUEST_PERMISSION = 42;
-    String externalStoragePath = Environment.getExternalStorageDirectory().getPath();
-
-    private String currentWorkingDirectory;
-    private ArrayList<String> paths;
-    private ArrayAdapter<String> adapter;
-    private String playlistPath;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(com.recentbirds.mockingbird.R.layout.activity_main);
 
-        final ListView playlistView = (ListView) findViewById(com.recentbirds.mockingbird.R.id.playlistView);
-        if (playlistView == null) {
-            return;
-        }
+        final Intent intent = new Intent(this, ChoosePlaylistActivity.class);
 
-        paths = new ArrayList<String>();
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, paths);
-        playlistView.setAdapter(adapter);
-        playlistView.setSelector(android.R.color.darker_gray);
-
-        playlistView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-                Object o = playlistView.getItemAtPosition(position);
-                playlistPath = (String)o;
-
-                //If the selected item is a directory and contains another directory, we will
-                //change the current working directory.
-                String newPath = currentWorkingDirectory + '/' + playlistPath;
-                File dir = new File(newPath);
-                if (dir.exists() && dir.isDirectory()) {
-                    boolean hasSubDirectory = false;
-                    for (String s : dir.list()) {
-                        if (s.startsWith(".")) {
-                            //Attempt to ignore hidden files and directories
-                            continue;
-                        }
-
-                        File f = new File(newPath + '/' + s);
-                        if (f.exists() && f.isDirectory()) {
-                            hasSubDirectory = true;
-                            break;
-                        }
-                    }
-
-                    if (hasSubDirectory) {
-                        currentWorkingDirectory = newPath;
-                        playlistPath = null;
-                        populateListView();
-                    }
-                }
-            }
-        });
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    REQUEST_PERMISSION);
-        } else {
-            populateListView();
-        }
-
-        final Intent intent = new Intent(this, PlaylistActivity.class);
-
-        final Button backButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.backButton);
-        if (backButton != null) {
-            backButton.setOnClickListener(new View.OnClickListener() {
+        final Button choosePlaylistButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.choosePlaylistButton);
+        if (choosePlaylistButton != null) {
+            choosePlaylistButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    if (currentWorkingDirectory != null && !currentWorkingDirectory.equals(externalStoragePath)) {
-                        currentWorkingDirectory = currentWorkingDirectory.substring(0, currentWorkingDirectory.lastIndexOf('/'));
-                        populateListView();
-                    }
+                    startActivity(intent);
                 }
             });
-        }
-
-        final Button startPlaylistButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.startPlaylistButton);
-        if (startPlaylistButton != null) {
-            startPlaylistButton.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    if (playlistPath != null) {
-                        intent.putExtra("playlistPath", currentWorkingDirectory +  "/" + playlistPath);
-                        startActivity(intent);
-                    }
-                }
-            });
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(final int requestCode, @NonNull final String[] permissions, @NonNull final int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                populateListView();
-            } else {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage(R.string.no_permission_message)
-                        .setTitle(R.string.no_permission_title)
-                        .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                finish();
-                            }
-                        });
-                builder.create().show();
-            }
-        }
-    }
-
-    public void populateListView() {
-        // First check our own directory, then generic music directory, then fallback to just the
-        // sdcard path, which is not that helpful, but whatever.
-        String[] potentialStoragePaths = {externalStoragePath + "/Mockingbird",
-                externalStoragePath + "/mockingbird",
-                externalStoragePath + "/Music"};
-
-
-        if (currentWorkingDirectory == null) {
-            for (String path : potentialStoragePaths) {
-                File dir = new File(path);
-                if (dir.exists() && dir.list() != null) {
-                    currentWorkingDirectory = path;
-                    break;
-                }
-            }
-        }
-
-        paths.clear();
-
-        File dir = new File(currentWorkingDirectory);
-        if (dir.exists() && dir.isDirectory()) {
-            for (String path : dir.list()) {
-                File f = new File(currentWorkingDirectory + '/' + path);
-                if (f.exists() && f.isDirectory()) {
-                    paths.add(path);
-                }
-            }
-            Collections.sort(paths);
-            adapter.notifyDataSetChanged();
         }
     }
 }
