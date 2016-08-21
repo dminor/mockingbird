@@ -1,4 +1,4 @@
-# mockingbird - Android birdsong study
+# mockingbird - birdsong study app
 
 I took a course on bird song this past spring. Each week the instructor
 distributed a number of songs for us to learn. I tried using a few different
