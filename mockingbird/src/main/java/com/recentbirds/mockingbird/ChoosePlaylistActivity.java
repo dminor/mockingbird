@@ -22,6 +22,9 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -36,13 +39,17 @@ import android.widget.Button;
 import android.widget.ListView;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 
 public class ChoosePlaylistActivity extends AppCompatActivity {
 
     int REQUEST_PERMISSION = 42;
-    String externalStoragePath = Environment.getExternalStorageDirectory().getPath();
+    String externalStoragePath = Environment.getExternalStorageDirectory().getPath() + "/Mockingbird";
 
     private String currentWorkingDirectory;
     private ArrayList<String> paths;
@@ -99,9 +106,9 @@ public class ChoosePlaylistActivity extends AppCompatActivity {
         });
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     REQUEST_PERMISSION);
         } else {
             populateListView();
@@ -155,21 +162,40 @@ public class ChoosePlaylistActivity extends AppCompatActivity {
     }
 
     public void populateListView() {
-        // First check our own directory, then generic music directory, then fallback to just the
-        // sdcard path, which is not that helpful, but whatever.
-        String[] potentialStoragePaths = {externalStoragePath + "/Mockingbird",
-                externalStoragePath + "/mockingbird",
-                externalStoragePath + "/Music"};
-
 
         if (currentWorkingDirectory == null) {
-            for (String path : potentialStoragePaths) {
-                File dir = new File(path);
-                if (dir.exists() && dir.list() != null) {
-                    currentWorkingDirectory = path;
-                    break;
+            File dir = new File(externalStoragePath);
+            if (!dir.exists()) {
+                File exampleDir = new File(externalStoragePath + "/Example Playlist");
+                if (exampleDir.mkdirs()) {
+                    AssetManager assetManager = this.getAssets();
+                    try {
+                        for (String filename : assetManager.list("example")) {
+                            InputStream in = assetManager.open("example/" + filename);
+                            FileOutputStream out = new FileOutputStream(exampleDir.getPath() + "/" + filename);
+                            byte[] buff = new byte[1024];
+                            int read = 0;
+
+                            try {
+                                while ((read = in.read(buff)) > 0) {
+                                    out.write(buff, 0, read);
+                                }
+                            } finally {
+                                in.close();
+                                out.close();
+                            }
+
+                            //Work around https://code.google.com/p/android/issues/detail?id=38282
+                            File f = new File(exampleDir + "/" + filename);
+                            MediaScannerConnection.scanFile(this, new String[]{f.getPath()}, null, null);
+                            this.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(f)));
+                        }
+                    } catch (FileNotFoundException e) {
+                    } catch (IOException e) {
+                    }
                 }
             }
+            currentWorkingDirectory = externalStoragePath;
         }
 
         paths.clear();
