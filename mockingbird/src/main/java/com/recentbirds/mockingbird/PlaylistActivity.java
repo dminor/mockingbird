@@ -44,7 +44,6 @@ import java.util.Random;
 
 public class PlaylistActivity extends AppCompatActivity {
 
-    private int REQUEST_PERMISSION = 42;
     private Random random = new Random();
 
     private MediaPlayer mediaPlayer;
@@ -321,7 +320,7 @@ public class PlaylistActivity extends AppCompatActivity {
         // to do something sensible with the file name itself.
         MediaMetadataRetriever mmr = new MediaMetadataRetriever();
         mmr.setDataSource(this, uri);
-        String songName = null;//mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+        String songName = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
         if (songName == null || songName.length() == 0) {
             int lastdot = fileName.lastIndexOf('.');
             if (lastdot != -1) {
