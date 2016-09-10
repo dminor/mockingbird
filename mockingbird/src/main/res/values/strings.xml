@@ -10,4 +10,6 @@
     <string name="no_permission_message">Without accessing external storage, no songs can be played.</string>
     <string name="say_answer_setting">Say Answers</string>
     <string name="say_answer_setting_summary">Use TextToSpeech to say answers</string>
+    <string name="use_birdcodes_setting">Use Bird Banding Codes</string>
+    <string name="use_birdcodes_setting_summary">Use four letter bird banding codes instead of names </string>
 </resources>

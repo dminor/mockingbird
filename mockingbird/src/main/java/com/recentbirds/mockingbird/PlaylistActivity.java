@@ -36,9 +36,13 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Random;
 
@@ -58,12 +62,15 @@ public class PlaylistActivity extends AppCompatActivity {
     private TextToSpeech textToSpeech;
     private boolean useTextToSpeech;
 
+    private HashMap<String, String> birdcodes;
+    private boolean useBirdCodes;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(com.recentbirds.mockingbird.R.layout.activity_playlist);
 
-        playlistPath =  getIntent().getStringExtra("playlistPath");
+        playlistPath = getIntent().getStringExtra("playlistPath");
         playlistImages = new ArrayList<String>();
         playlistSongs = new ArrayList<String>();
 
@@ -107,7 +114,7 @@ public class PlaylistActivity extends AppCompatActivity {
                         if (textToSpeech != null && useTextToSpeech) {
                             textToSpeech.speak(songName.getText().toString(), TextToSpeech.QUEUE_FLUSH, null);
                         }
-                    };
+                    }
                 }
             });
         }
@@ -125,7 +132,7 @@ public class PlaylistActivity extends AppCompatActivity {
                         mediaPlayer.stop();
                     }
 
-                    if (useTextToSpeech && textToSpeech != null && songName.getVisibility() != View.VISIBLE ) {
+                    if (useTextToSpeech && textToSpeech != null && songName.getVisibility() != View.VISIBLE) {
                         textToSpeech.speak(songName.getText().toString(), TextToSpeech.QUEUE_FLUSH, null);
                     }
 
@@ -182,7 +189,12 @@ public class PlaylistActivity extends AppCompatActivity {
             });
         }
 
-        if(savedInstanceState != null) {
+        useBirdCodes = sharedPref.getBoolean("pref_use_birdcodes", false);
+        if (useBirdCodes) {
+            readBirdCodes();
+        }
+
+        if (savedInstanceState != null) {
             playlistPath = savedInstanceState.getString("playlistPath");
             playlistImages = savedInstanceState.getStringArrayList("playlistImages");
             playlistSongs = savedInstanceState.getStringArrayList("playlistSongs");
@@ -333,10 +345,10 @@ public class PlaylistActivity extends AppCompatActivity {
             // filename that don't really belong in a song name.
             songName = songName.replaceAll("^[0-9 -.]+", "");
             songName = songName.replaceAll("[0-9 -.]+$", "");
-
-            // Remove parentheses, no one cares about latin anyway
-            songName = songName.replaceAll("[(].+[)]", "");
         }
+
+        // Remove parentheses, no one cares about latin anyway
+        songName = songName.replaceAll("[(].+[)]", "");
 
         return songName;
     }
@@ -371,6 +383,12 @@ public class PlaylistActivity extends AppCompatActivity {
         }
 
         String songName = prettifySongName(song, fileName);
+        if (useBirdCodes) {
+            String codedName = birdcodes.get(songName.toLowerCase());
+            if (codedName != null) {
+                songName = codedName;
+            }
+        }
 
         final TextView textView = (TextView) this.findViewById(com.recentbirds.mockingbird.R.id.songName);
         if (textView != null) {
@@ -392,6 +410,31 @@ public class PlaylistActivity extends AppCompatActivity {
                     currentPosition = 0;
                 }
             });
+        }
+    }
+
+    private void readBirdCodes() {
+        birdcodes = new HashMap<String, String>();
+        InputStream ins = getResources().openRawResource(
+                getResources().getIdentifier("birdcodes",
+                        "raw", getPackageName()));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
+        try {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] row = line.split(",");
+                if (row.length >= 2) {
+                    birdcodes.put(row[1].toLowerCase(), row[0]);
+                }
+            }
+        } catch (IOException e) {
+
+        } finally {
+            try {
+                ins.close();
+            } catch (IOException e) {
+
+            }
         }
     }
 

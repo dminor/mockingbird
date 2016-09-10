@@ -5,4 +5,9 @@
         android:title="@string/say_answer_setting"
         android:summary="@string/say_answer_setting_summary"
         android:defaultValue="false" />
+    <CheckBoxPreference
+        android:key="pref_use_birdcodes"
+        android:title="@string/use_birdcodes_setting"
+        android:summary="@string/use_birdcodes_setting_summary"
+        android:defaultValue="false" />
 </PreferenceScreen>
