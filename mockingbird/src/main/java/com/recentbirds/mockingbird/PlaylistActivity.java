@@ -16,9 +16,11 @@
 */
 package com.recentbirds.mockingbird;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -46,7 +48,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Random;
 
-public class PlaylistActivity extends AppCompatActivity {
+public class PlaylistActivity extends AppCompatActivity
+        implements AudioManager.OnAudioFocusChangeListener {
 
     private Random random = new Random();
 
@@ -64,6 +67,45 @@ public class PlaylistActivity extends AppCompatActivity {
 
     private HashMap<String, String> birdcodes;
     private boolean useBirdCodes;
+
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+        switch (focusChange) {
+            case AudioManager.AUDIOFOCUS_GAIN:
+                if (mediaPlayer == null) {
+                    playSong();
+                } else if (!mediaPlayer.isPlaying()) {
+                    mediaPlayer.start();
+                } else {
+                    mediaPlayer.setVolume(1.0f, 1.0f);
+                }
+                break;
+
+            case AudioManager.AUDIOFOCUS_LOSS:
+                if (mediaPlayer != null) {
+                    if (mediaPlayer.isPlaying()) {
+                        mediaPlayer.stop();
+                    }
+                    mediaPlayer.release();
+                    mediaPlayer = null;
+                }
+                break;
+
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                    mediaPlayer.pause();
+                }
+                break;
+
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                // Lost focus for a short time, but it's ok to keep playing
+                // at an attenuated level
+                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                    mediaPlayer.setVolume(0.1f, 0.1f);
+                }
+                break;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -238,8 +280,6 @@ public class PlaylistActivity extends AppCompatActivity {
                 currentPosition = mediaPlayer.getCurrentPosition();
                 mediaPlayer.stop();
             }
-            mediaPlayer.release();
-            mediaPlayer = null;
         }
     }
 
@@ -255,6 +295,8 @@ public class PlaylistActivity extends AppCompatActivity {
             textToSpeech.stop();
         }
         super.onStop();
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        audioManager.abandonAudioFocus(this);
     }
 
     @Override
@@ -354,6 +396,14 @@ public class PlaylistActivity extends AppCompatActivity {
     }
 
     private void playSong() {
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN);
+
+        if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            return;
+        }
+
         if (playlistSongs.size() == 0) {
             return;
         }
