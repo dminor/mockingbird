@@ -18,24 +18,18 @@ package com.recentbirds.mockingbird;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -237,8 +231,14 @@ public class PlaylistActivity extends AppCompatActivity
             currentPosition = savedInstanceState.getInt("currentPosition");
             playSong();
         } else {
-            playlist.indexSongs();
-            playlist.shuffle();
+            playlist.indexSongs(new Playlist.OnSongsIndexedListener() {
+                @Override
+                public void onSongsIndexed() {
+                    playlist.shuffle();
+                    currentlyPlaying = true;
+                    playSong();
+                }
+            });
         }
     }
 

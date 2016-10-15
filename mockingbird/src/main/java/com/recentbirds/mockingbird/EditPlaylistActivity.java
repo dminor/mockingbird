@@ -89,7 +89,12 @@ public class EditPlaylistActivity extends AppCompatActivity
 
         String playlistPath = getIntent().getStringExtra("playlistPath");
         playlist = new Playlist(this, playlistPath);
-        playlist.indexSongs();
+        playlist.indexSongs(new Playlist.OnSongsIndexedListener() {
+            @Override
+            public void onSongsIndexed() {
+
+            }
+        });
 
         final ListView songsListView = (ListView) findViewById(R.id.songsListView);
         if (songsListView == null) {
@@ -210,8 +215,12 @@ public class EditPlaylistActivity extends AppCompatActivity
     @Override
     public void onResume() {
         super.onResume();
-        playlist.indexSongs();
-        adapter.notifyDataSetChanged();
+        playlist.indexSongs(new Playlist.OnSongsIndexedListener() {
+            @Override
+            public void onSongsIndexed() {
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     @Override

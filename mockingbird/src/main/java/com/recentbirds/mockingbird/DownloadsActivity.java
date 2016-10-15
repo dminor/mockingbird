@@ -93,11 +93,15 @@ public class DownloadsActivity extends AppCompatActivity
 
         playlistPath = getIntent().getStringExtra("playlistPath");
         playlist = new Playlist(this, playlistPath);
-        playlist.indexSongs();
 
         downloadsPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
         downloads = new Playlist(this, downloadsPath);
-        downloads.indexSongs();
+        downloads.indexSongs(new Playlist.OnSongsIndexedListener() {
+            @Override
+            public void onSongsIndexed() {
+
+            }
+        });
 
         final ListView downloadsListView = (ListView) findViewById(R.id.downloadsListView);
         if (downloadsListView == null) {
@@ -165,8 +169,12 @@ public class DownloadsActivity extends AppCompatActivity
     @Override
     public void onResume() {
         super.onResume();
-        playlist.indexSongs();
-        adapter.notifyDataSetChanged();
+        playlist.indexSongs(new Playlist.OnSongsIndexedListener() {
+            @Override
+            public void onSongsIndexed() {
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     @Override
@@ -199,8 +207,12 @@ public class DownloadsActivity extends AppCompatActivity
 
         }
 
-        playlist.indexSongs();
-        adapter.notifyDataSetChanged();
+        playlist.indexSongs(new Playlist.OnSongsIndexedListener() {
+            @Override
+            public void onSongsIndexed() {
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     private void playSong() {

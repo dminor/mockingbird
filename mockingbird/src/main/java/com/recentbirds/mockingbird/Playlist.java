@@ -29,6 +29,10 @@ import java.util.Random;
 
 public class Playlist {
 
+    public interface OnSongsIndexedListener {
+        void onSongsIndexed();
+    }
+
     private Context context;
     private String playlistPath;
 
@@ -41,6 +45,7 @@ public class Playlist {
         context = c;
         playlistPath = path;
         playlistSongs = new ArrayList<String>();
+        currentSong = 0;
     }
 
     public String currentSong() {
@@ -70,7 +75,7 @@ public class Playlist {
         return playlistPath;
     }
 
-    public void indexSongs() {
+    public void indexSongs(final OnSongsIndexedListener listener) {
         class IndexFilesTask extends AsyncTask<String, Void, Integer> {
             protected Integer doInBackground(String... paths) {
                 File dir = new File(playlistPath);
@@ -92,7 +97,7 @@ public class Playlist {
             }
 
             protected void onPostExecute(Integer result) {
-
+                listener.onSongsIndexed();
             }
         }
 
