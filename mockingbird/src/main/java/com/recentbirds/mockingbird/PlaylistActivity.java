@@ -39,26 +39,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Random;
 
 public class PlaylistActivity extends AppCompatActivity
         implements AudioManager.OnAudioFocusChangeListener {
 
-    private Random random = new Random();
+    private Playlist playlist;
 
     private MediaPlayer mediaPlayer;
     private String playlistPath;
-    private ArrayList<String> playlistImages;
-    private int currentImage;
-    private ArrayList<String> playlistSongs;
-    private int currentSong;
     private boolean currentlyPlaying;
     private int currentPosition;
 
@@ -113,16 +106,14 @@ public class PlaylistActivity extends AppCompatActivity
         setContentView(com.recentbirds.mockingbird.R.layout.activity_playlist);
 
         playlistPath = getIntent().getStringExtra("playlistPath");
-        playlistImages = new ArrayList<String>();
-        playlistSongs = new ArrayList<String>();
+        playlist = new Playlist(this, playlistPath);
 
         currentlyPlaying = true;
         currentPosition = 0;
 
         TextView playlistName = (TextView) findViewById(R.id.playlistName);
         if (playlistName != null) {
-            String name = playlistPath.substring(playlistPath.lastIndexOf('/') + 1);
-            playlistName.setText(name);
+            playlistName.setText(playlist.getName());
         }
 
         final Button playPauseButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.playPauseButton);
@@ -190,16 +181,7 @@ public class PlaylistActivity extends AppCompatActivity
                         @Override
                         public void onAnimationEnd(Animation animation) {
                             songName.setVisibility(View.INVISIBLE);
-                            currentSong = currentSong + 1;
-                            if (currentSong == playlistSongs.size()) {
-                                currentImage = currentImage + 1;
-                                if (currentImage == playlistImages.size()) {
-                                    currentImage = 0;
-                                }
-                                setPlaylistImage();
-                                shuffle(playlistSongs);
-                                currentSong = 0;
-                            }
+                            playlist.nextSong();
                             currentlyPlaying = true;
                             currentPosition = 0;
                             playSong();
@@ -238,12 +220,7 @@ public class PlaylistActivity extends AppCompatActivity
 
         if (savedInstanceState != null) {
             playlistPath = savedInstanceState.getString("playlistPath");
-            playlistImages = savedInstanceState.getStringArrayList("playlistImages");
-            playlistSongs = savedInstanceState.getStringArrayList("playlistSongs");
-            currentImage = savedInstanceState.getInt("currentImage");
-            currentSong = savedInstanceState.getInt("currentSong");
-
-            setPlaylistImage();
+            playlist.restore(savedInstanceState);
 
             if (songName != null) {
                 songName.setVisibility(savedInstanceState.getInt("songNameVisibility"));
@@ -260,7 +237,8 @@ public class PlaylistActivity extends AppCompatActivity
             currentPosition = savedInstanceState.getInt("currentPosition");
             playSong();
         } else {
-            indexSongs();
+            playlist.indexSongs();
+            playlist.shuffle();
         }
     }
 
@@ -302,11 +280,7 @@ public class PlaylistActivity extends AppCompatActivity
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        savedInstanceState.putStringArrayList("playlistImages", playlistImages);
-        savedInstanceState.putString("playlistPath", playlistPath);
-        savedInstanceState.putStringArrayList("playlistSongs", playlistSongs);
-        savedInstanceState.putInt("currentImage", currentImage);
-        savedInstanceState.putInt("currentSong", currentSong);
+        playlist.save(savedInstanceState);
         savedInstanceState.putBoolean("currentlyPlaying", currentlyPlaying);
         savedInstanceState.putInt("currentPosition", currentPosition);
 
@@ -314,85 +288,6 @@ public class PlaylistActivity extends AppCompatActivity
         if (textView != null) {
             savedInstanceState.putInt("songNameVisibility", textView.getVisibility());
         }
-    }
-
-    private void indexSongs() {
-
-        final PlaylistActivity context = this;
-
-        class IndexFilesTask extends AsyncTask<String, Void, Integer> {
-            protected Integer doInBackground(String... paths) {
-                Uri path = Uri.parse(playlistPath);
-                File dir = new File(path.getPath());
-                if (!dir.exists()) {
-                    //Since we receive this value picked from a directory listing, this shouldn't normally
-                    //happen.
-                    return 1;
-                }
-                playlistSongs.clear();
-
-                MediaPlayer mp = new MediaPlayer();
-                for (String song : dir.list()) {
-                    String s = song.toLowerCase();
-                    if (s.endsWith(".jpeg") || s.endsWith(".jpg") || s.endsWith(".png")) {
-                        playlistImages.add(song);
-                        continue;
-                    }
-
-                    Uri uri = Uri.parse(playlistPath + "/" + song);
-                    try {
-                        mp.reset();
-                        mp.setDataSource(context, uri);
-                    } catch (IOException e) {
-                        continue;
-                    }
-
-                    playlistSongs.add(song);
-                }
-                mp.release();
-
-                return 0;
-            }
-
-            protected void onPostExecute(Integer result) {
-                if (result == 0) {
-                    shuffle(playlistImages);
-                    setPlaylistImage();
-                    shuffle(playlistSongs);
-                    currentSong = 0;
-                    currentPosition = 0;
-                    playSong();
-                }
-            }
-        }
-
-        new IndexFilesTask().execute();
-    }
-
-    private String prettifySongName(Uri uri, String fileName) {
-        // Attempt to get song name from media metadata. If it is not set or this just fails, we try
-        // to do something sensible with the file name itself.
-        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-        mmr.setDataSource(this, uri);
-        String songName = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-        if (songName == null || songName.length() == 0) {
-            int lastdot = fileName.lastIndexOf('.');
-            if (lastdot != -1) {
-                songName = fileName.substring(0, lastdot);
-            } else {
-                songName = fileName;
-            }
-
-            // Attempt to trim leading and trailing numbers, dots, etc. that might be part of a
-            // filename that don't really belong in a song name.
-            songName = songName.replaceAll("^[0-9 -.]+", "");
-            songName = songName.replaceAll("[0-9 -.]+$", "");
-        }
-
-        // Remove parentheses, no one cares about latin anyway
-        songName = songName.replaceAll("[(].+[)]", "");
-
-        return songName;
     }
 
     private void playSong() {
@@ -404,7 +299,7 @@ public class PlaylistActivity extends AppCompatActivity
             return;
         }
 
-        if (playlistSongs.size() == 0) {
+        if (!playlist.hasSongs()) {
             return;
         }
 
@@ -417,7 +312,7 @@ public class PlaylistActivity extends AppCompatActivity
             mediaPlayer.reset();
         }
 
-        String fileName = playlistSongs.get(currentSong);
+        String fileName = playlist.currentSong();
         Uri song = Uri.parse(playlistPath + "/" + fileName);
         try {
             mediaPlayer.setDataSource(this, song);
@@ -432,7 +327,9 @@ public class PlaylistActivity extends AppCompatActivity
             mediaPlayer.start();
         }
 
-        String songName = prettifySongName(song, fileName);
+        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+        mmr.setDataSource(this, song);
+        String songName = playlist.prettifySongName(song, fileName);
         if (useBirdCodes) {
             String codedName = birdcodes.get(songName.toLowerCase());
             if (codedName != null) {
@@ -485,79 +382,6 @@ public class PlaylistActivity extends AppCompatActivity
             } catch (IOException e) {
 
             }
-        }
-    }
-
-    private void setPlaylistImage() {
-        final ImageView playlistImageView = (ImageView) findViewById(R.id.playlistImageView);
-
-        if (playlistImageView == null) {
-            return;
-        }
-
-        class LoadImageTask extends AsyncTask<String, Void, Integer> {
-            private int imageViewWidth;
-            private int imageViewHeight;
-            private Bitmap bm;
-
-            protected void onPreExecute() {
-                imageViewWidth = playlistImageView.getWidth();
-                imageViewHeight = playlistImageView.getHeight();
-            }
-
-            protected Integer doInBackground(String... paths) {
-
-                String imagePath = playlistPath + "/" + playlistImages.get(currentImage);
-
-                BitmapFactory.Options o = new BitmapFactory.Options();
-                o.inJustDecodeBounds = true;
-                bm = BitmapFactory.decodeFile(imagePath, o);
-
-                int imageWidth = o.outWidth;
-                int imageHeight = o.outHeight;
-                int sampleSize = 1;
-                while (imageWidth > imageViewWidth || imageHeight > imageViewHeight) {
-                    imageWidth /= 2;
-                    imageHeight /= 2;
-                    sampleSize *= 2;
-                }
-                o.inSampleSize = sampleSize;
-                o.inJustDecodeBounds = false;
-                bm = BitmapFactory.decodeFile(imagePath, o);
-
-                return 0;
-            }
-
-            protected void onPostExecute(Integer result) {
-                if (result == 0 && bm != null) {
-                    playlistImageView.setImageBitmap(bm);
-                }
-            }
-        }
-
-        // We want to execute after layout has completed so that we have the ImageView height
-        // and width available.
-        playlistImageView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                playlistImageView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                if (!playlistImages.isEmpty()) {
-                    new LoadImageTask().execute();
-                } else {
-                    playlistImageView.setImageResource(android.R.color.transparent);
-                }
-            }
-        });
-    }
-
-    private void shuffle(ArrayList<String> arrayList) {
-        int length = arrayList.size();
-        for (int i = 0; i < length - 1; ++i) {
-            int j = i + random.nextInt(length - i);
-            String s = arrayList.get(i);
-            String t = arrayList.get(j);
-            arrayList.set(i, t);
-            arrayList.set(j, s);
         }
     }
 }

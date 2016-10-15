@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
         PreferenceManager.setDefaultValues(this, R.xml.settings, false);
 
         final Intent choosePlaylistIntent = new Intent(this, ChoosePlaylistActivity.class);
-
         final Button choosePlaylistButton = (Button) findViewById(R.id.choosePlaylistButton);
         if (choosePlaylistButton != null) {
             choosePlaylistButton.setOnClickListener(new View.OnClickListener() {

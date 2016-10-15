@@ -19,6 +19,7 @@ package com.recentbirds.mockingbird;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -116,13 +117,63 @@ public class ChoosePlaylistActivity extends AppCompatActivity {
 
         final Intent intent = new Intent(this, PlaylistActivity.class);
 
-        final Button backButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.backButton);
-        if (backButton != null) {
-            backButton.setOnClickListener(new View.OnClickListener() {
+        final Button createPlaylistsButton = (Button) findViewById(R.id.createPlaylistButton);
+        if (createPlaylistsButton != null) {
+            createPlaylistsButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    if (currentWorkingDirectory != null && !currentWorkingDirectory.equals(externalStoragePath)) {
-                        currentWorkingDirectory = currentWorkingDirectory.substring(0, currentWorkingDirectory.lastIndexOf('/'));
+                    playlistPath = externalStoragePath + "/New Playlist";
+                    File dir = new File(playlistPath);
+                    if (dir.mkdirs()) {
+                        File nomedia = new File(playlistPath + "/.nomedia");
+                        try {
+                            nomedia.createNewFile();
+                        } catch (IOException ex) {
+
+                        }
                         populateListView();
+                    }
+                }
+            });
+        }
+
+        final Context context = this;
+        final Button deletePlaylistsButton = (Button) findViewById(R.id.deletePlaylistButton);
+        if (deletePlaylistsButton != null) {
+            deletePlaylistsButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    if (playlistPath == null) {
+                        return;
+                    }
+
+                    final File dir = new File(currentWorkingDirectory +  "/" + playlistPath);
+                    if (dir.isDirectory()) {
+                        new AlertDialog.Builder(context)
+                                .setMessage(R.string.delete_playlist_message)
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        String[] children = dir.list();
+                                        for (String f: dir.list()) {
+                                            new File(dir, f).delete();
+                                        }
+                                        dir.delete();
+                                        playlistPath = null;
+                                        populateListView();
+                                    }})
+                                .setNegativeButton(android.R.string.no, null).show();
+                    }
+                }
+            });
+        }
+
+        final Intent editPlaylistsIntent = new Intent(this, EditPlaylistActivity.class);
+        final Button editPlaylistsButton = (Button) findViewById(R.id.editPlaylistButton);
+        if (editPlaylistsButton != null) {
+            editPlaylistsButton.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    if (playlistPath != null) {
+                        editPlaylistsIntent.putExtra("playlistPath", currentWorkingDirectory + "/" + playlistPath);
+                        startActivity(editPlaylistsIntent);
                     }
                 }
             });
@@ -150,7 +201,6 @@ public class ChoosePlaylistActivity extends AppCompatActivity {
             } else {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage(R.string.no_permission_message)
-                        .setTitle(R.string.no_permission_title)
                         .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 finish();
@@ -161,8 +211,13 @@ public class ChoosePlaylistActivity extends AppCompatActivity {
         }
     }
 
-    public void populateListView() {
+    @Override
+    public void onResume() {
+        super.onResume();
+        populateListView();
+    }
 
+    public void populateListView() {
         if (currentWorkingDirectory == null) {
             File dir = new File(externalStoragePath);
             if (!dir.exists()) {

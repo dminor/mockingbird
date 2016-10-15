@@ -32,11 +32,13 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:background="#00ffffff"
-        android:scaleType="centerCrop"
+        android:scaleType="fitCenter"
         android:importantForAccessibility="no"
         android:layout_above="@+id/songName"
         android:visibility="visible"
-        android:layout_below="@+id/playlistName" />
+        android:layout_below="@+id/playlistName"
+        android:focusableInTouchMode="false"
+        android:src="@drawable/mockingbird_512x512" />
 
     <TextView
         android:layout_width="wrap_content"

@@ -3,6 +3,7 @@
     package="com.recentbirds.mockingbird">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -19,7 +20,10 @@
         </activity>
         <activity android:name=".PlaylistActivity" />
         <activity android:name=".ChoosePlaylistActivity" />
-        <activity android:name=".SettingsActivity"></activity>
+        <activity android:name=".SettingsActivity" />
+        <activity android:name=".XenoCantoActivity" />
+        <activity android:name=".EditPlaylistActivity" />
+        <activity android:name=".DownloadsActivity"></activity>
     </application>
 
 </manifest>

@@ -10,18 +10,13 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="com.recentbirds.mockingbird.ChoosePlaylistActivity">
 
-    <TextView
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/select_label"
-        android:id="@+id/textView"
-        android:textAlignment="textStart"
-        android:layout_alignParentTop="true"
+        android:text="@string/create_label"
+        android:id="@+id/createPlaylistButton"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentEnd="true" />
 
     <ListView
         android:layout_width="wrap_content"
@@ -30,11 +25,11 @@
         android:footerDividersEnabled="true"
         android:choiceMode="singleChoice"
         android:clickable="false"
-        android:layout_toEndOf="@+id/textView"
-        android:layout_below="@+id/textView"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_above="@+id/choosePlaylistButton" />
+        android:layout_above="@+id/choosePlaylistButton"
+        android:layout_below="@+id/createPlaylistButton"
+        android:background="@android:drawable/editbox_background_normal" />
 
     <Button
         style="?android:attr/buttonStyleSmall"
@@ -42,18 +37,31 @@
         android:layout_height="wrap_content"
         android:text="@string/start_label"
         android:id="@+id/choosePlaylistButton"
-        android:layout_alignParentBottom="true"
-        android:layout_alignRight="@+id/playlistView"
-        android:layout_alignEnd="@+id/playlistView"
-        android:layout_toRightOf="@+id/backButton"
-        android:layout_toEndOf="@+id/backButton" />
+        android:layout_above="@+id/editPlaylistButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Back"
-        android:id="@+id/backButton"
-        android:layout_alignTop="@+id/choosePlaylistButton"
+        android:text="@string/edit_label"
+        android:id="@+id/editPlaylistButton"
+        android:layout_alignParentBottom="true"
+        android:layout_alignRight="@+id/choosePlaylistButton"
+        android:layout_alignEnd="@+id/choosePlaylistButton"
+        android:layout_toRightOf="@+id/deletePlaylistButton"
+        android:layout_toEndOf="@+id/deletePlaylistButton" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/delete_label"
+        android:id="@+id/deletePlaylistButton"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/choosePlaylistButton" />
+
 </RelativeLayout>
