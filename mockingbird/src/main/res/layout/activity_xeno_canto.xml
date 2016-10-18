@@ -9,19 +9,15 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.recentbirds.mockingbird.XenoCantoActivity">
 
-    <EditText
-        android:imeOptions="actionNext"
+    <AutoCompleteTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/searchEditText"
+        android:layout_toLeftOf="@+id/searchButton"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_toLeftOf="@+id/searchButton"
-        android:layout_toStartOf="@+id/searchButton"
-        android:maxLines="1"
-        android:focusable="true"
-        android:enabled="true"
+        android:layout_above="@+id/searchResultListView"
         android:singleLine="true" />
 
     <Button
@@ -29,7 +25,6 @@
         android:layout_height="wrap_content"
         android:text="@string/search_label"
         android:id="@+id/searchButton"
-        android:layout_alignBottom="@+id/searchEditText"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:focusable="true"
@@ -39,11 +34,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/searchResultListView"
-        android:layout_below="@+id/searchEditText"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:focusable="true"
-        android:layout_above="@+id/xenoCantoPlayPauseButton" />
+        android:layout_above="@+id/xenoCantoPlayPauseButton"
+        android:layout_below="@+id/searchButton" />
 
     <Button
         android:layout_width="wrap_content"

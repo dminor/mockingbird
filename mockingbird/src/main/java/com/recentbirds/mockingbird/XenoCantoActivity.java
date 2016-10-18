@@ -17,25 +17,22 @@
 
 package com.recentbirds.mockingbird;
 
-import android.app.AlertDialog;
-import android.app.DownloadManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.KeyEvent;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -83,7 +80,9 @@ public class XenoCantoActivity extends AppCompatActivity
 
     private ArrayList<SearchResult> searchResults;
     private int currentSearchResult;
-    private ArrayAdapter<SearchResult> adapter;
+    private ArrayAdapter<SearchResult> searchAdapter;
+
+    private XenoCantoSuggestionsAdapter suggestionsAdapter;
 
     private MediaPlayer mediaPlayer;
     private String playlistPath;
@@ -141,8 +140,8 @@ public class XenoCantoActivity extends AppCompatActivity
 
         searchResults = new ArrayList<SearchResult>();
         currentSearchResult = -1;
-        adapter = new ArrayAdapter<SearchResult>(this, android.R.layout.simple_list_item_1, searchResults);
-        searchResultListView.setAdapter(adapter);
+        searchAdapter = new ArrayAdapter<SearchResult>(this, android.R.layout.simple_list_item_1, searchResults);
+        searchResultListView.setAdapter(searchAdapter);
         searchResultListView.setSelector(android.R.color.darker_gray);
 
         final Button playPauseButton = (Button) findViewById(R.id.xenoCantoPlayPauseButton);
@@ -217,13 +216,13 @@ public class XenoCantoActivity extends AppCompatActivity
 
             protected void onPostExecute(Integer result) {
                 if (result == 0) {
-                    adapter.notifyDataSetChanged();
+                    searchAdapter.notifyDataSetChanged();
                 }
             }
         }
 
         final Button searchButton = (Button) findViewById(R.id.searchButton);
-        final EditText searchEditText = (EditText) findViewById(R.id.searchEditText);
+        final AutoCompleteTextView searchEditText = (AutoCompleteTextView) findViewById(R.id.searchEditText);
 
         if (searchButton != null && searchEditText != null) {
             searchButton.setOnClickListener(new View.OnClickListener() {
@@ -233,6 +232,24 @@ public class XenoCantoActivity extends AppCompatActivity
                 }
             });
         }
+
+        suggestionsAdapter = new XenoCantoSuggestionsAdapter(this, android.R.layout.simple_dropdown_item_1line);
+        searchEditText.setAdapter(suggestionsAdapter);
+        searchEditText.setThreshold(4);
+
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            public void afterTextChanged(Editable s) {
+                suggestionsAdapter.setSearchString(s.toString());
+            }
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+        });
 
         if (playPauseButton != null) {
             playPauseButton.setOnClickListener(new View.OnClickListener() {
