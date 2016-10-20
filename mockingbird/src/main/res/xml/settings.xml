@@ -10,4 +10,11 @@
         android:title="@string/use_birdcodes_setting"
         android:summary="@string/use_birdcodes_setting_summary"
         android:defaultValue="false" />
+    <ListPreference
+        android:key="pref_xenocanto_quality"
+        android:title="@string/xenocanto_quality_setting"
+        android:entries="@array/quality"
+        android:entryValues="@array/qualityvalues"
+        android:summary="@string/xenocanto_quality_summary"
+        android:defaultValue="q:A"/>
 </PreferenceScreen>

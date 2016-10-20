@@ -18,10 +18,12 @@
 package com.recentbirds.mockingbird;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -60,6 +62,7 @@ public class XenoCantoActivity extends AppCompatActivity
         String file;
         String loc;
         String date;
+        String q;
 
         public SearchResult(JSONObject json) {
             try {
@@ -68,6 +71,7 @@ public class XenoCantoActivity extends AppCompatActivity
                 file = json.getString("file");
                 loc = json.getString("loc");
                 date = json.getString("date");
+                q = json.getString("q");
             } catch (JSONException e) {
 
             }
@@ -161,13 +165,15 @@ public class XenoCantoActivity extends AppCompatActivity
             });
         }
 
-        final Context context = this;
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        final String searchQuality = sharedPref.getString("pref_xenocanto_quality", "q:A");
+
         class SearchXenoCantoTask extends AsyncTask<String, Void, Integer> {
             protected Integer doInBackground(String... searchTerms) {
 
                 String searchTerm;
                 try {
-                    searchTerm = URLEncoder.encode(searchTerms[0], "UTF-8");
+                    searchTerm = URLEncoder.encode(searchTerms[0] + " " + searchQuality, "UTF-8");
                 } catch(UnsupportedEncodingException e) {
                     e.printStackTrace();
                     return -1;
@@ -175,6 +181,7 @@ public class XenoCantoActivity extends AppCompatActivity
 
                 String result = null;
                 try {
+                    //TODO: we don't handle paged results here
                     URL url = new URL(QUERY_URL + searchTerm);
                     URLConnection conn = url.openConnection();
                     conn.connect();

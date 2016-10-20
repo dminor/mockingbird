@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="quality">
+        <item>A</item>
+        <item>B</item>
+        <item>C</item>
+        <item>D</item>
+        <item>None</item>
+    </string-array>
+    <string-array name="qualityvalues">
+        <item>q:A</item>
+        <item>q>:C</item>
+        <item>q>:D</item>
+        <item>q>:E</item>
+        <item>q:0</item>
+    </string-array>
+</resources>

@@ -23,4 +23,6 @@
     <string name="say_answer_setting_summary">Use TextToSpeech to say answers</string>
     <string name="use_birdcodes_setting">Use Bird Banding Codes</string>
     <string name="use_birdcodes_setting_summary">Use four letter bird banding codes instead of names </string>
+    <string name="xenocanto_quality_setting">Xeno-Canto Recording Quality</string>
+    <string name="xenocanto_quality_summary">Restrict Xeno-Canto recordings to this quality or better</string>
 </resources>
