@@ -214,7 +214,10 @@ public class ChoosePlaylistActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        populateListView();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            populateListView();
+        }
     }
 
     public void populateListView() {
