@@ -59,12 +59,14 @@ public class PlaylistActivity extends AppCompatActivity
     public void onAudioFocusChange(int focusChange) {
         switch (focusChange) {
             case AudioManager.AUDIOFOCUS_GAIN:
-                if (mediaPlayer == null) {
-                    playSong();
-                } else if (!mediaPlayer.isPlaying()) {
-                    mediaPlayer.start();
-                } else {
-                    mediaPlayer.setVolume(1.0f, 1.0f);
+                if (currentlyPlaying) {
+                    if (mediaPlayer == null) {
+                        playSong();
+                    } else if (!mediaPlayer.isPlaying()) {
+                        mediaPlayer.start();
+                    } else {
+                        mediaPlayer.setVolume(1.0f, 1.0f);
+                    }
                 }
                 break;
 
@@ -257,6 +259,8 @@ public class PlaylistActivity extends AppCompatActivity
             if (mediaPlayer.isPlaying()) {
                 currentPosition = mediaPlayer.getCurrentPosition();
                 mediaPlayer.stop();
+                AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                audioManager.abandonAudioFocus(this);
             }
         }
     }
