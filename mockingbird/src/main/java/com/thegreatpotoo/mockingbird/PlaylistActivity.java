@@ -14,7 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package com.recentbirds.mockingbird;
+package com.thegreatpotoo.mockingbird;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -97,7 +97,7 @@ public class PlaylistActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(com.recentbirds.mockingbird.R.layout.activity_playlist);
+        setContentView(com.thegreatpotoo.mockingbird.R.layout.activity_playlist);
 
         playlistPath = getIntent().getStringExtra("playlistPath");
         playlist = new Playlist(this, playlistPath);
@@ -110,17 +110,17 @@ public class PlaylistActivity extends AppCompatActivity
             playlistName.setText(playlist.getName());
         }
 
-        final Button playPauseButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.playPauseButton);
+        final Button playPauseButton = (Button) findViewById(com.thegreatpotoo.mockingbird.R.id.playPauseButton);
         if (playPauseButton != null) {
             playPauseButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     if (mediaPlayer != null) {
                         if (mediaPlayer.isPlaying()) {
-                            playPauseButton.setText(com.recentbirds.mockingbird.R.string.play_label);
+                            playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.play_label);
                             mediaPlayer.pause();
                             currentlyPlaying = false;
                         } else {
-                            playPauseButton.setText(com.recentbirds.mockingbird.R.string.pause_label);
+                            playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.pause_label);
                             mediaPlayer.start();
                             currentlyPlaying = true;
                         }
@@ -129,8 +129,8 @@ public class PlaylistActivity extends AppCompatActivity
             });
         }
 
-        final TextView songName = (TextView) this.findViewById(com.recentbirds.mockingbird.R.id.songName);
-        final Button showAnswerButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.showAnswerButton);
+        final TextView songName = (TextView) this.findViewById(com.thegreatpotoo.mockingbird.R.id.songName);
+        final Button showAnswerButton = (Button) findViewById(com.thegreatpotoo.mockingbird.R.id.showAnswerButton);
         if (songName != null && showAnswerButton != null) {
             showAnswerButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
@@ -146,7 +146,7 @@ public class PlaylistActivity extends AppCompatActivity
             });
         }
 
-        final Button nextButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.nextButton);
+        final Button nextButton = (Button) findViewById(com.thegreatpotoo.mockingbird.R.id.nextButton);
         if (songName != null && nextButton != null) {
             nextButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
@@ -284,7 +284,7 @@ public class PlaylistActivity extends AppCompatActivity
         savedInstanceState.putBoolean("currentlyPlaying", currentlyPlaying);
         savedInstanceState.putInt("currentPosition", currentPosition);
 
-        TextView textView = (TextView) this.findViewById(com.recentbirds.mockingbird.R.id.songName);
+        TextView textView = (TextView) this.findViewById(com.thegreatpotoo.mockingbird.R.id.songName);
         if (textView != null) {
             savedInstanceState.putInt("songNameVisibility", textView.getVisibility());
         }
@@ -337,12 +337,12 @@ public class PlaylistActivity extends AppCompatActivity
             }
         }
 
-        final TextView textView = (TextView) this.findViewById(com.recentbirds.mockingbird.R.id.songName);
+        final TextView textView = (TextView) this.findViewById(com.thegreatpotoo.mockingbird.R.id.songName);
         if (textView != null) {
             textView.setText(songName);
         }
 
-        final Button playPauseButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.playPauseButton);
+        final Button playPauseButton = (Button) findViewById(com.thegreatpotoo.mockingbird.R.id.playPauseButton);
         if (playPauseButton != null) {
             if (currentlyPlaying) {
                 playPauseButton.setText(R.string.pause_label);
@@ -352,7 +352,7 @@ public class PlaylistActivity extends AppCompatActivity
 
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 public void onCompletion(MediaPlayer mp) {
-                    playPauseButton.setText(com.recentbirds.mockingbird.R.string.play_label);
+                    playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.play_label);
                     currentlyPlaying = false;
                     currentPosition = 0;
                 }

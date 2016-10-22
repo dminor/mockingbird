@@ -15,7 +15,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.recentbirds.mockingbird;
+package com.thegreatpotoo.mockingbird;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -62,7 +62,7 @@ public class ChoosePlaylistActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_playlist);
 
-        final ListView playlistView = (ListView) findViewById(com.recentbirds.mockingbird.R.id.playlistView);
+        final ListView playlistView = (ListView) findViewById(com.thegreatpotoo.mockingbird.R.id.playlistView);
         if (playlistView == null) {
             return;
         }
@@ -179,7 +179,7 @@ public class ChoosePlaylistActivity extends AppCompatActivity {
             });
         }
 
-        final Button startPlaylistButton = (Button) findViewById(com.recentbirds.mockingbird.R.id.choosePlaylistButton);
+        final Button startPlaylistButton = (Button) findViewById(com.thegreatpotoo.mockingbird.R.id.choosePlaylistButton);
         if (startPlaylistButton != null) {
             startPlaylistButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {

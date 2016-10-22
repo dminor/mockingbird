@@ -15,7 +15,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.recentbirds.mockingbird;
+package com.thegreatpotoo.mockingbird;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -159,7 +159,7 @@ public class XenoCantoActivity extends AppCompatActivity
                     if (mediaPlayer != null) {
                         mediaPlayer.stop();
                         mediaPlayer = null;
-                        playPauseButton.setText(com.recentbirds.mockingbird.R.string.play_label);
+                        playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.play_label);
                     }
                 }
             });
@@ -263,15 +263,15 @@ public class XenoCantoActivity extends AppCompatActivity
                 public void onClick(View v) {
                     if (mediaPlayer != null) {
                         if (mediaPlayer.isPlaying()) {
-                            playPauseButton.setText(com.recentbirds.mockingbird.R.string.play_label);
+                            playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.play_label);
                             mediaPlayer.pause();
                         } else {
-                            playPauseButton.setText(com.recentbirds.mockingbird.R.string.pause_label);
+                            playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.pause_label);
                             mediaPlayer.start();
                         }
                     } else {
                         playSong();
-                        playPauseButton.setText(com.recentbirds.mockingbird.R.string.pause_label);
+                        playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.pause_label);
                     }
                 }
             });
@@ -395,7 +395,7 @@ public class XenoCantoActivity extends AppCompatActivity
         if (playPauseButton != null) {
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 public void onCompletion(MediaPlayer mp) {
-                    playPauseButton.setText(com.recentbirds.mockingbird.R.string.play_label);
+                    playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.play_label);
                 }
             });
         }

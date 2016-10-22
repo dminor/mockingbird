@@ -15,7 +15,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.recentbirds.mockingbird;
+package com.thegreatpotoo.mockingbird;
 
 import android.content.Context;
 import android.media.MediaMetadataRetriever;

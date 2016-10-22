@@ -15,7 +15,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.recentbirds.mockingbird;
+package com.thegreatpotoo.mockingbird;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(com.recentbirds.mockingbird.R.layout.activity_main);
+        setContentView(com.thegreatpotoo.mockingbird.R.layout.activity_main);
 
         PreferenceManager.setDefaultValues(this, R.xml.settings, false);
 

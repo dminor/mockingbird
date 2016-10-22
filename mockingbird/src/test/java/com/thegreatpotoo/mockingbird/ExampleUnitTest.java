@@ -1,4 +1,4 @@
-package com.recentbirds.mockingbird;
+package com.thegreatpotoo.mockingbird;
 
 import org.junit.Test;
 

@@ -1,4 +1,4 @@
-package com.recentbirds.mockingbird;
+package com.thegreatpotoo.mockingbird;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
