@@ -63,9 +63,9 @@ class XenoCantoSuggestionsAdapter extends ArrayAdapter<String> implements Filter
             protected FilterResults performFiltering(CharSequence constraint) {
                 FilterResults filterResults = new FilterResults();
                 if (constraint != null) {
-                    getXenoCantoSearchSuggestions();
-                    filterResults.values = suggestions;
-                    filterResults.count = suggestions.size();
+                    ArrayList<String> searchSuggestions = getXenoCantoSearchSuggestions();
+                    filterResults.values = searchSuggestions;
+                    filterResults.count = searchSuggestions.size();
                 }
                 return filterResults;
             }
@@ -73,6 +73,7 @@ class XenoCantoSuggestionsAdapter extends ArrayAdapter<String> implements Filter
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
                 if (results != null && results.count > 0) {
+                    suggestions = (ArrayList<String>)results.values;
                     notifyDataSetChanged();
                 }
                 else {
@@ -88,8 +89,9 @@ class XenoCantoSuggestionsAdapter extends ArrayAdapter<String> implements Filter
         //notifyDataSetChanged();
     }
 
-    private void getXenoCantoSearchSuggestions() {
-        String result = null;
+    private ArrayList<String> getXenoCantoSearchSuggestions() {
+        ArrayList<String> searchSuggestions = new ArrayList<String>();
+        String jsonResult = null;
         try {
             searchString = URLEncoder.encode(searchString, "UTF-8");
             URL url = new URL(QUERY_URL + searchString);
@@ -104,7 +106,7 @@ class XenoCantoSuggestionsAdapter extends ArrayAdapter<String> implements Filter
                 sb.append(line + "\n");
             }
 
-            result = sb.toString();
+            jsonResult = sb.toString();
             is.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -112,18 +114,19 @@ class XenoCantoSuggestionsAdapter extends ArrayAdapter<String> implements Filter
 
         }
 
-        if (result != null) {
+        if (jsonResult != null) {
             try {
-                JSONObject json = new JSONObject(result);
+                JSONObject json = new JSONObject(jsonResult);
                 JSONArray data = json.getJSONArray("data");
-                suggestions.clear();
                 for (int i = 0; i < data.length(); ++i)  {
                     JSONObject datum = data.getJSONObject(i);
-                    suggestions.add(datum.getString("common_name"));
+                    searchSuggestions.add(datum.getString("common_name"));
                 }
             } catch (JSONException e) {
 
             }
         }
+
+        return searchSuggestions;
     }
 }

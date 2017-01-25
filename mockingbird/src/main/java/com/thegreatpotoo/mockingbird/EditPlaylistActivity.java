@@ -58,9 +58,6 @@ public class EditPlaylistActivity extends AppCompatActivity
 
             case AudioManager.AUDIOFOCUS_LOSS:
                 if (mediaPlayer != null) {
-                    if (mediaPlayer.isPlaying()) {
-                        mediaPlayer.stop();
-                    }
                     mediaPlayer.release();
                     mediaPlayer = null;
                 }
@@ -208,7 +205,14 @@ public class EditPlaylistActivity extends AppCompatActivity
         if (mediaPlayer != null) {
             if (mediaPlayer.isPlaying()) {
                 mediaPlayer.stop();
+
+                Button playPauseButton = (Button) findViewById(R.id.editPlaylistPlayPauseButton);
+                if (playPauseButton != null) {
+                    playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.play_label);
+                }
             }
+
+            mediaPlayer.release();
         }
     }
 
@@ -228,6 +232,10 @@ public class EditPlaylistActivity extends AppCompatActivity
         super.onStop();
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         audioManager.abandonAudioFocus(this);
+
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+        }
     }
 
     private void playSong() {

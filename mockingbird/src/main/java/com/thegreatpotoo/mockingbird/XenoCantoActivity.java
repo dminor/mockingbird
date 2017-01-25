@@ -106,9 +106,6 @@ public class XenoCantoActivity extends AppCompatActivity
 
             case AudioManager.AUDIOFOCUS_LOSS:
                 if (mediaPlayer != null) {
-                    if (mediaPlayer.isPlaying()) {
-                        mediaPlayer.stop();
-                    }
                     mediaPlayer.release();
                     mediaPlayer = null;
                 }
@@ -308,6 +305,11 @@ public class XenoCantoActivity extends AppCompatActivity
         super.onStop();
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         audioManager.abandonAudioFocus(this);
+
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
     }
 
     private void addToPlaylist() {
