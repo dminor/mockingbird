@@ -17,6 +17,7 @@
 
 package com.thegreatpotoo.mockingbird;
 
+import android.app.DownloadManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
@@ -329,42 +330,11 @@ public class XenoCantoActivity extends AppCompatActivity
             return;
         }
 
-        class DownloadTask extends AsyncTask<SearchResult, Void, Integer> {
-            protected Integer doInBackground(SearchResult... searchResults) {
-
-                SearchResult sr = searchResults[0];
-
-                try {
-                    URL url = new URL(sr.file);
-                    java.io.BufferedInputStream in = new java.io.BufferedInputStream(url.openStream());
-
-                    java.io.FileOutputStream fos = new java.io.FileOutputStream(playlistPath + "/" + sr.name + "-xc" + sr.id + ".mp3");
-                    java.io.BufferedOutputStream out = new BufferedOutputStream(fos, 2048);
-                    byte[] data = new byte[2048];
-                    int c = 0;
-                    while((c = in.read(data, 0, 2048)) >= 0) {
-                        out.write(data, 0, c);
-                    }
-                    fos.close();
-                    out.close();
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return -1;
-                } finally {
-
-                }
-
-                return 0;
-            }
-
-            protected void onPostExecute(Integer result) {
-                if (result == 0) {
-                }
-            }
-        }
-
-        new DownloadTask().execute(searchResults.get(currentSearchResult));
+        SearchResult sr = searchResults.get(currentSearchResult);
+        DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(sr.file));
+        request.setDestinationUri(Uri.parse("file://" + playlistPath + "/" + sr.name + "-xc" + sr.id + ".mp3"));
+        dm.enqueue(request);
     }
 
     private void playSong() {
