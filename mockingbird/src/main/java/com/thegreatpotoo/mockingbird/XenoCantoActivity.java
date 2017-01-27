@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -177,12 +178,14 @@ public class XenoCantoActivity extends AppCompatActivity
                 }
 
                 String result = null;
+                HttpURLConnection conn = null;
+                InputStream is = null;
                 try {
                     //TODO: we don't handle paged results here
                     URL url = new URL(QUERY_URL + searchTerm);
-                    URLConnection conn = url.openConnection();
+                    conn = (HttpURLConnection) url.openConnection();
                     conn.connect();
-                    InputStream is = conn.getInputStream();
+                    is = conn.getInputStream();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 8);
                     StringBuilder sb = new StringBuilder();
 
@@ -193,11 +196,20 @@ public class XenoCantoActivity extends AppCompatActivity
                     }
                     result = sb.toString();
                     is.close();
-                } catch (Exception e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                     return -1;
                 } finally {
+                    try {
+                        if (is != null) {
+                            is.close();
+                        }
+                    } catch (IOException e) {
+                    }
 
+                    if (conn != null) {
+                        conn.disconnect();
+                    }
                 }
 
                 if (result != null) {
@@ -336,7 +348,7 @@ public class XenoCantoActivity extends AppCompatActivity
                     fos.close();
                     out.close();
                     in.close();
-                } catch (Exception e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                     return -1;
                 } finally {
