@@ -18,6 +18,7 @@ package com.thegreatpotoo.mockingbird;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.drawable.LayerDrawable;
 import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
@@ -30,6 +31,7 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -103,30 +105,30 @@ public class PlaylistActivity extends AppCompatActivity
 
         currentlyPlaying = true;
         currentPosition = 0;
+        updatePlayPauseState();
 
         TextView playlistName = (TextView) findViewById(R.id.playlistName);
         if (playlistName != null) {
             playlistName.setText(playlist.getName());
         }
 
-        final Button playPauseButton = (Button) findViewById(com.thegreatpotoo.mockingbird.R.id.playPauseButton);
-        if (playPauseButton != null) {
-            playPauseButton.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    if (mediaPlayer != null) {
-                        if (mediaPlayer.isPlaying()) {
-                            playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.play_label);
-                            mediaPlayer.pause();
-                            currentlyPlaying = false;
-                        } else {
-                            playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.pause_label);
-                            mediaPlayer.start();
-                            currentlyPlaying = true;
-                        }
+        ImageView playlistImageView = (ImageView) findViewById(R.id.playlistImageView);
+
+        playlistImageView.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (mediaPlayer != null) {
+                    if (mediaPlayer.isPlaying()) {
+                        mediaPlayer.pause();
+                        currentlyPlaying = false;
+                        updatePlayPauseState();
+                    } else {
+                        mediaPlayer.start();
+                        currentlyPlaying = true;
+                        updatePlayPauseState();
                     }
                 }
-            });
-        }
+            }
+        });
 
         final TextView songName = (TextView) this.findViewById(com.thegreatpotoo.mockingbird.R.id.songName);
         final Button showAnswerButton = (Button) findViewById(com.thegreatpotoo.mockingbird.R.id.showAnswerButton);
@@ -220,14 +222,8 @@ public class PlaylistActivity extends AppCompatActivity
             }
 
             currentlyPlaying = savedInstanceState.getBoolean("currentlyPlaying");
-            if (playPauseButton != null) {
-                if (currentlyPlaying) {
-                    playPauseButton.setText(R.string.pause_label);
-                } else {
-                    playPauseButton.setText(R.string.play_label);
-                }
-            }
             currentPosition = savedInstanceState.getInt("currentPosition");
+            updatePlayPauseState();
             playSong();
         } else {
             playlist.indexSongs(new Playlist.OnSongsIndexedListener() {
@@ -348,22 +344,15 @@ public class PlaylistActivity extends AppCompatActivity
             textView.setText(songName);
         }
 
-        final Button playPauseButton = (Button) findViewById(com.thegreatpotoo.mockingbird.R.id.playPauseButton);
-        if (playPauseButton != null) {
-            if (currentlyPlaying) {
-                playPauseButton.setText(R.string.pause_label);
-            } else {
-                playPauseButton.setText(R.string.play_label);
-            }
+        updatePlayPauseState();
 
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                public void onCompletion(MediaPlayer mp) {
-                    playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.play_label);
-                    currentlyPlaying = false;
-                    currentPosition = 0;
-                }
-            });
-        }
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            public void onCompletion(MediaPlayer mp) {
+                currentlyPlaying = false;
+                currentPosition = 0;
+                updatePlayPauseState();
+            }
+        });
     }
 
     private void readBirdCodes() {
@@ -388,6 +377,21 @@ public class PlaylistActivity extends AppCompatActivity
             } catch (IOException e) {
 
             }
+        }
+    }
+
+    private void updatePlayPauseState() {
+        ImageView playlistImageView = (ImageView) findViewById(R.id.playlistImageView);
+        final LayerDrawable ld = (LayerDrawable) playlistImageView.getDrawable();
+
+        if (currentlyPlaying) {
+            ld.getDrawable(1).setAlpha(255);
+            ld.getDrawable(2).setAlpha(0);
+            playlistImageView.setContentDescription(getString(R.string.pause_label));
+        } else {
+            ld.getDrawable(1).setAlpha(0);
+            ld.getDrawable(2).setAlpha(255);
+            playlistImageView.setContentDescription(getString(R.string.play_label));
         }
     }
 }
