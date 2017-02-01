@@ -36,7 +36,26 @@ public class Playlist {
     private Context context;
     private String playlistPath;
 
-    private ArrayList<String> playlistSongs;
+
+    public class PlaylistSong {
+        public PlaylistSong(String fileName) {
+            this.fileName = fileName;
+            fullPath = playlistPath + "/" + fileName;
+            uri = Uri.parse(fullPath);
+            prettifiedName = "";
+        }
+
+        public String toString() {
+            return fileName;
+        }
+
+        public String fileName;
+        public String fullPath;
+        public String prettifiedName;
+        public Uri uri;
+    }
+
+    private ArrayList<PlaylistSong> playlistSongs;
     private int currentSong;
 
     private Random random = new Random();
@@ -44,28 +63,31 @@ public class Playlist {
     public Playlist(Context c, String path) {
         context = c;
         playlistPath = path;
-        playlistSongs = new ArrayList<String>();
+        playlistSongs = new ArrayList<>();
         currentSong = 0;
     }
 
-    public String currentSong() {
-        return playlistSongs.get(currentSong);
+    public PlaylistSong currentSong() {
+        return getSong(currentSong);
     }
 
     public void deleteSong(int index) {
-        File f = new File(playlistPath + "/" + playlistSongs.get(index));
+        File f = new File(playlistSongs.get(index).fullPath);
         if (f.delete()) {
             playlistSongs.remove(index);
         }
     }
 
-    public String getSong(int index) {
-        return playlistSongs.get(index);
+    public PlaylistSong getSong(int index) {
+        PlaylistSong song = playlistSongs.get(index);
+        if (song.prettifiedName.isEmpty()) {
+            song.prettifiedName = prettifySongName(song.fileName);
+        }
+
+        return song;
     }
 
-    public ArrayList<String> getSongs() {
-        return playlistSongs;
-    }
+    public ArrayList<PlaylistSong> getSongs() { return playlistSongs; }
 
     public String getName() {
         return playlistPath.substring(playlistPath.lastIndexOf('/') + 1);
@@ -78,22 +100,7 @@ public class Playlist {
     public void indexSongs(final OnSongsIndexedListener listener) {
         class IndexFilesTask extends AsyncTask<String, Void, Integer> {
             protected Integer doInBackground(String... paths) {
-                File dir = new File(playlistPath);
-                if (!dir.exists()) {
-                    //Since we receive this value picked from a directory listing, this shouldn't normally
-                    //happen.
-                    return 1;
-                }
-                playlistSongs.clear();
-
-                for (String song : dir.list()) {
-                    String s = song.toLowerCase();
-                    if (s.endsWith(".mp3") || s.endsWith(".ogg") || s.endsWith(".wav")) {
-                        playlistSongs.add(song);
-                    }
-                }
-
-                return 0;
+                return indexSongsSync();
             }
 
             protected void onPostExecute(Integer result) {
@@ -104,6 +111,25 @@ public class Playlist {
         new IndexFilesTask().execute();
     }
 
+    public int indexSongsSync() {
+        File dir = new File(playlistPath);
+        if (!dir.exists()) {
+            //Since we receive this value picked from a directory listing, this shouldn't normally
+            //happen.
+            return 1;
+        }
+        playlistSongs.clear();
+
+        for (String song : dir.list()) {
+            String s = song.toLowerCase();
+            if (s.endsWith(".mp3") || s.endsWith(".ogg") || s.endsWith(".wav")) {
+                playlistSongs.add(new PlaylistSong(song));
+            }
+        }
+
+        return 0;
+    }
+
     public boolean hasSongs() {
         return !playlistSongs.isEmpty();
     }
@@ -111,12 +137,15 @@ public class Playlist {
     public void nextSong() {
         currentSong = currentSong + 1;
         if (currentSong == playlistSongs.size()) {
-            shuffle(playlistSongs);
+            shuffle();
             currentSong = 0;
         }
     }
 
-    public String prettifySongName(Uri uri, String fileName) {
+    public String prettifySongName(String fileName) {
+
+        Uri uri = Uri.parse(playlistPath + "/" + fileName);
+
         // Attempt to get song name from media metadata. If it is not set or this just fails, we try
         // to do something sensible with the file name itself.
         MediaMetadataRetriever mmr = new MediaMetadataRetriever();
@@ -130,14 +159,14 @@ public class Playlist {
                 songName = fileName;
             }
 
+            // Remove parentheses, no one cares about latin anyway
+            songName = songName.replaceAll("[(].+[)]", "");
+
             // Attempt to trim leading and trailing numbers, dots, etc. that might be part of a
             // filename that don't really belong in a song name.
-            songName = songName.replaceAll("^[0-9 -.]+", "");
-            songName = songName.replaceAll("[0-9 -.]+$", "");
+            songName = songName.replaceAll("^([0-9 .-])+", "");
+            songName = songName.replaceAll("([0-9 .-]+)$", "");
         }
-
-        // Remove parentheses, no one cares about latin anyway
-        songName = songName.replaceAll("[(].+[)]", "");
 
         return songName;
     }
@@ -152,28 +181,32 @@ public class Playlist {
     }
 
     public void restore(Bundle savedInstanceState) {
-        playlistSongs = savedInstanceState.getStringArrayList("playlistSongs");
+        ArrayList<String> songs = savedInstanceState.getStringArrayList("playlistSongs");
+        for (String s: songs) {
+            playlistSongs.add(new PlaylistSong(s));
+        }
         currentSong = savedInstanceState.getInt("currentSong");
     }
 
     public void save(Bundle savedInstanceState) {
         savedInstanceState.putString("playlistPath", playlistPath);
-        savedInstanceState.putStringArrayList("playlistSongs", playlistSongs);
+
+        ArrayList<String> fileNames = new ArrayList<>();
+        for (PlaylistSong s: playlistSongs) {
+            fileNames.add(s.fileName);
+        }
+        savedInstanceState.putStringArrayList("playlistSongs", fileNames);
         savedInstanceState.putInt("currentSong", currentSong);
     }
 
     public void shuffle() {
-        shuffle(playlistSongs);
-    }
-
-    private void shuffle(ArrayList<String> arrayList) {
-        int length = arrayList.size();
+        int length = playlistSongs.size();
         for (int i = 0; i < length - 1; ++i) {
             int j = i + random.nextInt(length - i);
-            String s = arrayList.get(i);
-            String t = arrayList.get(j);
-            arrayList.set(i, t);
-            arrayList.set(j, s);
+            PlaylistSong s = playlistSongs.get(i);
+            PlaylistSong t = playlistSongs.get(j);
+            playlistSongs.set(i, t);
+            playlistSongs.set(j, s);
         }
     }
 }

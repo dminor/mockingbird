@@ -314,10 +314,9 @@ public class PlaylistActivity extends AppCompatActivity
             mediaPlayer.reset();
         }
 
-        String fileName = playlist.currentSong();
-        Uri song = Uri.parse(playlistPath + "/" + fileName);
+        Playlist.PlaylistSong song = playlist.currentSong();
         try {
-            mediaPlayer.setDataSource(this, song);
+            mediaPlayer.setDataSource(this, song.uri);
             mediaPlayer.prepare();
         } catch (IOException e) {
             return;
@@ -329,9 +328,7 @@ public class PlaylistActivity extends AppCompatActivity
             mediaPlayer.start();
         }
 
-        MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-        mmr.setDataSource(this, song);
-        String songName = playlist.prettifySongName(song, fileName);
+        String songName = song.prettifiedName;
         if (useBirdCodes) {
             String codedName = birdcodes.get(songName.toLowerCase());
             if (codedName != null) {

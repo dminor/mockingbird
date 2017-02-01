@@ -20,7 +20,6 @@ package com.thegreatpotoo.mockingbird;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -45,7 +44,7 @@ public class DownloadsActivity extends AppCompatActivity
     private Playlist playlist;
     private String playlistPath;
     private int selectedFile;
-    private ArrayAdapter<String> adapter;
+    private ArrayAdapter<Playlist.PlaylistSong> adapter;
 
     @Override
     public void onAudioFocusChange(int focusChange) {
@@ -106,7 +105,7 @@ public class DownloadsActivity extends AppCompatActivity
         }
 
         selectedFile = -1;
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, downloads.getSongs());
+        adapter = new ArrayAdapter<Playlist.PlaylistSong>(this, android.R.layout.simple_list_item_1, downloads.getSongs());
         downloadsListView.setAdapter(adapter);
         downloadsListView.setSelector(android.R.color.darker_gray);
 
@@ -191,7 +190,7 @@ public class DownloadsActivity extends AppCompatActivity
             return;
         }
 
-        String fileName = downloads.getSong(selectedFile);
+        String fileName = downloads.getSong(selectedFile).fileName;
         File src = new File(downloadsPath + "/" + fileName);
         File dest = new File(playlistPath + "/" + fileName);
         try {
@@ -239,11 +238,9 @@ public class DownloadsActivity extends AppCompatActivity
             mediaPlayer.reset();
         }
 
-        String fileName = downloads.getSong(selectedFile);
-        Uri song = Uri.parse(downloads.getPlaylistPath() + "/" + fileName);
-        ;
+        Playlist.PlaylistSong song = downloads.getSong(selectedFile);
         try {
-            mediaPlayer.setDataSource(this, song);
+            mediaPlayer.setDataSource(this, song.uri);
             mediaPlayer.prepare();
         } catch (IOException e) {
             return;

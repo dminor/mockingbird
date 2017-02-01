@@ -23,7 +23,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -41,7 +40,7 @@ public class EditPlaylistActivity extends AppCompatActivity
     private MediaPlayer mediaPlayer;
     private Playlist playlist;
     private int selectedSong;
-    private ArrayAdapter<String> adapter;
+    private ArrayAdapter<Playlist.PlaylistSong> adapter;
 
     @Override
     public void onAudioFocusChange(int focusChange) {
@@ -99,7 +98,7 @@ public class EditPlaylistActivity extends AppCompatActivity
         }
 
         selectedSong = -1;
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, playlist.getSongs());
+        adapter = new ArrayAdapter<Playlist.PlaylistSong>(this, android.R.layout.simple_list_item_1, playlist.getSongs());
         songsListView.setAdapter(adapter);
         songsListView.setSelector(android.R.color.darker_gray);
 
@@ -260,11 +259,9 @@ public class EditPlaylistActivity extends AppCompatActivity
             mediaPlayer.reset();
         }
 
-        String fileName = playlist.getSong(selectedSong);
-        Uri song = Uri.parse(playlist.getPlaylistPath() + "/" + fileName);
-;
+        Playlist.PlaylistSong song = playlist.getSong(selectedSong);
         try {
-            mediaPlayer.setDataSource(this, song);
+            mediaPlayer.setDataSource(this, song.uri);
             mediaPlayer.prepare();
         } catch (IOException e) {
             return;
