@@ -25,6 +25,7 @@ import android.os.Bundle;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 public class Playlist {
@@ -65,6 +66,29 @@ public class Playlist {
         playlistPath = path;
         playlistSongs = new ArrayList<>();
         currentSong = 0;
+    }
+
+    public ArrayList<String> choicesForSong(String song) {
+        ArrayList<String> result = new ArrayList<>();
+        result.add(song);
+
+        HashMap<Integer, Boolean> checked = new HashMap<>();
+        while (checked.size() < playlistSongs.size() && result.size() < 3) {
+            int i = random.nextInt(playlistSongs.size());
+            if (checked.containsKey(i)) {
+                continue;
+            }
+            checked.put(i, true);
+            String choice = getSong(i).prettifiedName;
+            if (result.contains(choice)) {
+                continue;
+            }
+            result.add(choice);
+        }
+
+        shuffle(result);
+
+        return result;
     }
 
     public PlaylistSong currentSong() {
@@ -137,7 +161,7 @@ public class Playlist {
     public void nextSong() {
         currentSong = currentSong + 1;
         if (currentSong == playlistSongs.size()) {
-            shuffle();
+            shuffle(playlistSongs);
             currentSong = 0;
         }
     }
@@ -158,15 +182,15 @@ public class Playlist {
             } else {
                 songName = fileName;
             }
-
-            // Remove parentheses, no one cares about latin anyway
-            songName = songName.replaceAll("[(].+[)]", "");
-
-            // Attempt to trim leading and trailing numbers, dots, etc. that might be part of a
-            // filename that don't really belong in a song name.
-            songName = songName.replaceAll("^([0-9 .-])+", "");
-            songName = songName.replaceAll("([0-9 .-]+)$", "");
         }
+
+        // Remove parentheses, no one cares about latin anyway
+        songName = songName.replaceAll("[(].+[)]", "");
+
+        // Attempt to trim leading and trailing numbers, dots, etc. that might be part of a
+        // filename that don't really belong in a song name.
+        songName = songName.replaceAll("^([0-9 .-])+", "");
+        songName = songName.replaceAll("([0-9 .-]+)$", "");
 
         return songName;
     }
@@ -200,13 +224,17 @@ public class Playlist {
     }
 
     public void shuffle() {
-        int length = playlistSongs.size();
+        shuffle(playlistSongs);
+    }
+
+    public <T> void shuffle(ArrayList<T> array) {
+        int length = array.size();
         for (int i = 0; i < length - 1; ++i) {
             int j = i + random.nextInt(length - i);
-            PlaylistSong s = playlistSongs.get(i);
-            PlaylistSong t = playlistSongs.get(j);
-            playlistSongs.set(i, t);
-            playlistSongs.set(j, s);
+            T s = array.get(i);
+            T t = array.get(j);
+            array.set(i, t);
+            array.set(j, s);
         }
     }
 }

@@ -14,6 +14,9 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -26,6 +29,41 @@ public class PlaylistTest {
 
     @Rule
     public TemporaryFolder playlistFolder = new TemporaryFolder();
+
+    @Test
+    public void choicesForSong_isCorrect() throws Exception {
+        Playlist playlist = new Playlist(mContext, playlistFolder.getRoot().getPath());
+
+        ArrayList<String> choices = playlist.choicesForSong("elephant bird");
+        assertEquals(1, choices.size());
+
+        playlistFolder.newFile("bird.ogg");
+        playlistFolder.newFile("bird 2.ogg");
+        playlistFolder.newFile("bird 4.ogg");
+        playlist.indexSongsSync();
+        assertEquals(3, playlistFolder.getRoot().listFiles().length);
+
+        choices = playlist.choicesForSong("bird");
+        assertEquals(1, choices.size());
+
+        playlistFolder.newFile("other bird.ogg");
+        playlist.indexSongsSync();
+        choices = playlist.choicesForSong("bird");
+        assertEquals(2, choices.size());
+
+        playlistFolder.newFile("yet another bird.ogg");
+        playlistFolder.newFile("super rare bird.ogg");
+        playlist.indexSongsSync();
+        choices = playlist.choicesForSong("bird");
+        assertEquals(3, choices.size());
+
+        HashMap<String, Boolean> s = new HashMap<>();
+        for (String choice: choices) {
+            s.put(choice, true);
+        }
+
+        assertEquals(3, s.size());
+    }
 
     @Test
     public void deleteSong_isCorrect() throws Exception {
