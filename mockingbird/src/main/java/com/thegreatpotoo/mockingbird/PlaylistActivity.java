@@ -57,7 +57,7 @@ public class PlaylistActivity extends AppCompatActivity
     private TextToSpeech textToSpeech;
     private boolean useTextToSpeech;
 
-    private HashMap<String, String> birdcodes;
+    private BirdCodes birdCodes;
     private boolean useBirdCodes;
 
     @Override
@@ -147,7 +147,11 @@ public class PlaylistActivity extends AppCompatActivity
 
         useBirdCodes = sharedPref.getBoolean("pref_use_birdcodes", false);
         if (useBirdCodes) {
-            readBirdCodes();
+            birdCodes = new BirdCodes();
+            InputStream ins = getResources().openRawResource(
+                    getResources().getIdentifier("birdcodes",
+                            "raw", getPackageName()));
+            birdCodes.read(ins);
         }
 
         if (savedInstanceState != null) {
@@ -256,7 +260,14 @@ public class PlaylistActivity extends AppCompatActivity
             mediaPlayer.start();
         }
 
-        final String songName = useBirdCodes ? birdcodes.get(song.prettifiedName.toLowerCase()) : song.prettifiedName;
+        ArrayList<String> choices = playlist.choicesForSong(song.prettifiedName);
+        if (useBirdCodes) {
+            for (int i = 0; i < choices.size(); ++i) {
+                choices.set(i, birdCodes.getCode(choices.get(i)));
+            }
+        }
+
+        final String songName = useBirdCodes ? birdCodes.getCode(song.prettifiedName) : song.prettifiedName;
 
         final TextView songNameTextView = (TextView) this.findViewById(com.thegreatpotoo.mockingbird.R.id.songName);
         if (songNameTextView != null) {
@@ -353,7 +364,6 @@ public class PlaylistActivity extends AppCompatActivity
             }
         };
 
-        ArrayList<String> choices = playlist.choicesForSong(songName);
         final Button firstButton = (Button) this.findViewById(R.id.firstButton);
         firstButton.setText(choices.get(0));
         firstButton.setOnClickListener(clickListener);
@@ -361,19 +371,19 @@ public class PlaylistActivity extends AppCompatActivity
         final Button secondButton = (Button) this.findViewById(R.id.secondButton);
         secondButton.setOnClickListener(clickListener);
         if (choices.size() >= 2) {
-            secondButton.setVisibility(1);
+            secondButton.setVisibility(View.VISIBLE);
             secondButton.setText(choices.get(1));
         } else {
-            secondButton.setVisibility(0);
+            secondButton.setVisibility(View.INVISIBLE);
         }
 
         final Button thirdButton = (Button) this.findViewById(R.id.thirdButton);
         thirdButton.setOnClickListener(clickListener);
         if (choices.size() == 3) {
-            thirdButton.setVisibility(1);
+            thirdButton.setVisibility(View.VISIBLE);
             thirdButton.setText(choices.get(2));
         } else {
-            thirdButton.setVisibility(0);
+            thirdButton.setVisibility(View.INVISIBLE);
         }
 
         updatePlayPauseState();
@@ -385,31 +395,6 @@ public class PlaylistActivity extends AppCompatActivity
                 updatePlayPauseState();
             }
         });
-    }
-
-    private void readBirdCodes() {
-        birdcodes = new HashMap<String, String>();
-        InputStream ins = getResources().openRawResource(
-                getResources().getIdentifier("birdcodes",
-                        "raw", getPackageName()));
-        BufferedReader reader = new BufferedReader(new InputStreamReader(ins));
-        try {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] row = line.split(",");
-                if (row.length >= 2) {
-                    birdcodes.put(row[1].toLowerCase(), row[0]);
-                }
-            }
-        } catch (IOException e) {
-
-        } finally {
-            try {
-                ins.close();
-            } catch (IOException e) {
-
-            }
-        }
     }
 
     private void updatePlayPauseState() {
