@@ -16,13 +16,15 @@
 */
 package com.thegreatpotoo.mockingbird;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.media.AudioManager;
-import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
@@ -38,6 +40,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -107,11 +110,6 @@ public class PlaylistActivity extends AppCompatActivity
         currentPosition = 0;
         updatePlayPauseState();
 
-        TextView playlistName = (TextView) findViewById(R.id.playlistName);
-        if (playlistName != null) {
-            playlistName.setText(playlist.getName());
-        }
-
         ImageView playlistImageView = (ImageView) findViewById(R.id.playlistImageView);
 
         playlistImageView.setOnClickListener(new View.OnClickListener() {
@@ -129,67 +127,6 @@ public class PlaylistActivity extends AppCompatActivity
                 }
             }
         });
-
-        final TextView songName = (TextView) this.findViewById(com.thegreatpotoo.mockingbird.R.id.songName);
-        final Button showAnswerButton = (Button) findViewById(com.thegreatpotoo.mockingbird.R.id.showAnswerButton);
-        if (songName != null && showAnswerButton != null) {
-            showAnswerButton.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    if (songName.getVisibility() == View.VISIBLE) {
-                        songName.setVisibility(View.INVISIBLE);
-                    } else {
-                        songName.setVisibility(View.VISIBLE);
-                        if (textToSpeech != null && useTextToSpeech) {
-                            textToSpeech.speak(songName.getText().toString(), TextToSpeech.QUEUE_FLUSH, null);
-                        }
-                    }
-                }
-            });
-        }
-
-        final Button nextButton = (Button) findViewById(com.thegreatpotoo.mockingbird.R.id.nextButton);
-        if (songName != null && nextButton != null) {
-            nextButton.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    if (songName.getAnimation() != null) {
-                        // Prevent multiple presses while animation is running
-                        return;
-                    }
-
-                    if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                        mediaPlayer.stop();
-                    }
-
-                    if (useTextToSpeech && textToSpeech != null && songName.getVisibility() != View.VISIBLE) {
-                        textToSpeech.speak(songName.getText().toString(), TextToSpeech.QUEUE_FLUSH, null);
-                    }
-
-                    songName.setVisibility(View.VISIBLE);
-                    final Animation fadeOut = new AlphaAnimation(1.0f, 0.0f);
-                    fadeOut.setDuration(1000);
-                    songName.startAnimation(fadeOut);
-                    fadeOut.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-                            songName.setVisibility(View.INVISIBLE);
-                            playlist.nextSong();
-                            currentlyPlaying = true;
-                            currentPosition = 0;
-                            playSong();
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animation animation) {
-
-                        }
-                    });
-                }
-            });
-        }
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -216,10 +153,6 @@ public class PlaylistActivity extends AppCompatActivity
         if (savedInstanceState != null) {
             playlistPath = savedInstanceState.getString("playlistPath");
             playlist.restore(savedInstanceState);
-
-            if (songName != null) {
-                songName.setVisibility(savedInstanceState.getInt("songNameVisibility"));
-            }
 
             currentlyPlaying = savedInstanceState.getBoolean("currentlyPlaying");
             currentPosition = savedInstanceState.getInt("currentPosition");
@@ -285,11 +218,6 @@ public class PlaylistActivity extends AppCompatActivity
         playlist.save(savedInstanceState);
         savedInstanceState.putBoolean("currentlyPlaying", currentlyPlaying);
         savedInstanceState.putInt("currentPosition", currentPosition);
-
-        TextView textView = (TextView) this.findViewById(com.thegreatpotoo.mockingbird.R.id.songName);
-        if (textView != null) {
-            savedInstanceState.putInt("songNameVisibility", textView.getVisibility());
-        }
     }
 
     private void playSong() {
@@ -328,17 +256,124 @@ public class PlaylistActivity extends AppCompatActivity
             mediaPlayer.start();
         }
 
-        String songName = song.prettifiedName;
-        if (useBirdCodes) {
-            String codedName = birdcodes.get(songName.toLowerCase());
-            if (codedName != null) {
-                songName = codedName;
-            }
+        final String songName = useBirdCodes ? birdcodes.get(song.prettifiedName.toLowerCase()) : song.prettifiedName;
+
+        final TextView songNameTextView = (TextView) this.findViewById(com.thegreatpotoo.mockingbird.R.id.songName);
+        if (songNameTextView != null) {
+            songNameTextView.setText(songName);
+            songNameTextView.setVisibility(View.INVISIBLE);
         }
 
-        final TextView textView = (TextView) this.findViewById(com.thegreatpotoo.mockingbird.R.id.songName);
-        if (textView != null) {
-            textView.setText(songName);
+        View.OnClickListener clickListener = new View.OnClickListener() {
+            public void onClick(View v) {
+
+                Button button = (Button)v;
+
+                ImageView playlistImageView = (ImageView) findViewById(R.id.playlistImageView);
+                final LayerDrawable ld = (LayerDrawable) playlistImageView.getDrawable();
+
+                boolean correct = button.getText().equals(songName);
+
+                if (correct) {
+                    ld.getDrawable(1).setAlpha(0);
+                    ld.getDrawable(2).setAlpha(0);
+                    ld.getDrawable(3).setAlpha(255);
+                    ld.getDrawable(4).setAlpha(0);
+
+                    songNameTextView.setVisibility(View.INVISIBLE);
+                } else {
+                    ld.getDrawable(1).setAlpha(0);
+                    ld.getDrawable(2).setAlpha(0);
+                    ld.getDrawable(3).setAlpha(0);
+                    ld.getDrawable(4).setAlpha(255);
+
+                    songNameTextView.setVisibility(View.VISIBLE);
+                }
+
+                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+                }
+
+                if (useTextToSpeech && textToSpeech != null) {
+                    textToSpeech.speak(songName, TextToSpeech.QUEUE_FLUSH, null);
+                }
+
+                final Drawable drawableForAnimation = correct ? ld.getDrawable(3) : ld.getDrawable(4);
+
+                ObjectAnimator fadeOut = ObjectAnimator.ofPropertyValuesHolder(drawableForAnimation, PropertyValuesHolder.ofInt("alpha", 0));
+                fadeOut.setTarget(drawableForAnimation);
+                fadeOut.setDuration(1500);
+                fadeOut.start();
+
+                if (!correct) {
+                    final Animation songNameFadeOut = new AlphaAnimation(1.0f, 0.0f);
+                    songNameFadeOut.setDuration(1400);
+                    songNameTextView.startAnimation(songNameFadeOut);
+                    songNameFadeOut.setAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            songNameTextView.setVisibility(View.INVISIBLE);
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+
+                        }
+                    });
+                }
+
+                fadeOut.addListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+                    }
+
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        playlist.nextSong();
+                        currentlyPlaying = true;
+                        currentPosition = 0;
+                        playSong();
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+
+                    }
+                });
+
+            }
+        };
+
+        ArrayList<String> choices = playlist.choicesForSong(songName);
+        final Button firstButton = (Button) this.findViewById(R.id.firstButton);
+        firstButton.setText(choices.get(0));
+        firstButton.setOnClickListener(clickListener);
+
+        final Button secondButton = (Button) this.findViewById(R.id.secondButton);
+        secondButton.setOnClickListener(clickListener);
+        if (choices.size() >= 2) {
+            secondButton.setVisibility(1);
+            secondButton.setText(choices.get(1));
+        } else {
+            secondButton.setVisibility(0);
+        }
+
+        final Button thirdButton = (Button) this.findViewById(R.id.thirdButton);
+        thirdButton.setOnClickListener(clickListener);
+        if (choices.size() == 3) {
+            thirdButton.setVisibility(1);
+            thirdButton.setText(choices.get(2));
+        } else {
+            thirdButton.setVisibility(0);
         }
 
         updatePlayPauseState();
@@ -390,5 +425,8 @@ public class PlaylistActivity extends AppCompatActivity
             ld.getDrawable(2).setAlpha(255);
             playlistImageView.setContentDescription(getString(R.string.play_label));
         }
+
+        ld.getDrawable(3).setAlpha(0);
+        ld.getDrawable(4).setAlpha(0);
     }
 }

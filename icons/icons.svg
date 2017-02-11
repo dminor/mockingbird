@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.5"
-     inkscape:cx="256.46285"
-     inkscape:cy="903.8349"
+     inkscape:zoom="0.8"
+     inkscape:cx="199.24183"
+     inkscape:cy="850.50157"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -44,7 +44,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -81,5 +81,33 @@
        sodipodi:nodetypes="cccc"
        inkscape:export-xdpi="90.199997"
        inkscape:export-ydpi="90.199997" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:157.25830078px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#1ac64d;fill-opacity:1;stroke:#000000;stroke-width:1.99999998;stroke-linecap:butt;stroke-linejoin:round;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;"
+       x="332.05859"
+       y="208.34793"
+       id="text4145"
+       sodipodi:linespacing="125%"
+       transform="scale(0.99941666,1.0005837)"
+       inkscape:export-xdpi="90.199997"
+       inkscape:export-ydpi="90.199997"><tspan
+         sodipodi:role="line"
+         id="tspan4147"
+         x="332.05859"
+         y="208.34793">✓</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:142.54632568px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#f14343;fill-opacity:1;stroke:#000000;stroke-width:1.99999999;stroke-linecap:butt;stroke-linejoin:bevel;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;"
+       x="366.52771"
+       y="233.90463"
+       id="text4149"
+       sodipodi:linespacing="125%"
+       transform="scale(1.2123785,0.82482493)"
+       inkscape:export-xdpi="90.199997"
+       inkscape:export-ydpi="90.199997"><tspan
+         sodipodi:role="line"
+         id="tspan4151"
+         x="366.52771"
+         y="233.90463">✗</tspan></text>
   </g>
 </svg>

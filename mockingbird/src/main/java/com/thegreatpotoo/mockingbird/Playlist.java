@@ -25,6 +25,7 @@ import android.os.Bundle;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -83,10 +84,11 @@ public class Playlist {
             if (result.contains(choice)) {
                 continue;
             }
+
             result.add(choice);
         }
 
-        shuffle(result);
+        Collections.sort(result);
 
         return result;
     }

@@ -3,4 +3,6 @@
     <item android:drawable="@drawable/mockingbird_512x512" />
     <item android:drawable="@drawable/pause" android:gravity="center"/>
     <item android:drawable="@drawable/play" android:gravity="center" />
+    <item android:drawable="@drawable/checkmark" android:gravity="center" />
+    <item android:drawable="@drawable/cross" android:gravity="center" />
 </layer-list>
