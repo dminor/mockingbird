@@ -264,10 +264,6 @@ public class PlaylistActivity extends AppCompatActivity
         final ArrayList<String> labels = new ArrayList<>();
         for (int i = 0; i < choices.size(); ++i) {
             labels.add(useBirdCodes ? birdCodes.getCode(choices.get(i)) : choices.get(i));
-        if (useBirdCodes) {
-            for (int i = 0; i < choices.size(); ++i) {
-                choices.set(i, birdCodes.getCode(choices.get(i)));
-            }
         }
 
         final String songName = useBirdCodes ? birdCodes.getCode(song.prettifiedName) : song.prettifiedName;
@@ -281,7 +277,7 @@ public class PlaylistActivity extends AppCompatActivity
         View.OnClickListener clickListener = new View.OnClickListener() {
             public void onClick(View v) {
 
-                Button button = (Button)v;
+                Button button = (Button) v;
 
                 ImageView playlistImageView = (ImageView) findViewById(R.id.playlistImageView);
                 final LayerDrawable ld = (LayerDrawable) playlistImageView.getDrawable();
