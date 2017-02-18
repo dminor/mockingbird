@@ -264,6 +264,10 @@ public class PlaylistActivity extends AppCompatActivity
         final ArrayList<String> labels = new ArrayList<>();
         for (int i = 0; i < choices.size(); ++i) {
             labels.add(useBirdCodes ? birdCodes.getCode(choices.get(i)) : choices.get(i));
+        if (useBirdCodes) {
+            for (int i = 0; i < choices.size(); ++i) {
+                choices.set(i, birdCodes.getCode(choices.get(i)));
+            }
         }
 
         final String songName = useBirdCodes ? birdCodes.getCode(song.prettifiedName) : song.prettifiedName;
