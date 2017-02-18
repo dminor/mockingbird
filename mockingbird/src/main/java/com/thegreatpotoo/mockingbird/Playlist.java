@@ -45,6 +45,8 @@ public class Playlist {
             fullPath = playlistPath + "/" + fileName;
             uri = Uri.parse(fullPath);
             prettifiedName = "";
+
+            mistakes = new ArrayList<>();
         }
 
         public String toString() {
@@ -55,6 +57,8 @@ public class Playlist {
         public String fullPath;
         public String prettifiedName;
         public Uri uri;
+
+        public ArrayList<String> mistakes;
     }
 
     private ArrayList<PlaylistSong> playlistSongs;
@@ -62,16 +66,24 @@ public class Playlist {
 
     private Random random = new Random();
 
+    private int currentStreak;
+
     public Playlist(Context c, String path) {
         context = c;
         playlistPath = path;
         playlistSongs = new ArrayList<>();
         currentSong = 0;
+        currentStreak = 0;
     }
 
-    public ArrayList<String> choicesForSong(String song) {
+    public ArrayList<String> choicesForSong(PlaylistSong song) {
         ArrayList<String> result = new ArrayList<>();
-        result.add(song);
+        result.add(song.prettifiedName);
+
+        if (!song.mistakes.isEmpty()) {
+            int i = random.nextInt(song.mistakes.size());
+            result.add(song.mistakes.get(i));
+        }
 
         HashMap<Integer, Boolean> checked = new HashMap<>();
         while (checked.size() < playlistSongs.size() && result.size() < 3) {
@@ -104,6 +116,10 @@ public class Playlist {
         }
     }
 
+    public int getCurrentStreak() {
+        return currentStreak;
+    }
+
     public PlaylistSong getSong(int index) {
         PlaylistSong song = playlistSongs.get(index);
         if (song.prettifiedName.isEmpty()) {
@@ -121,6 +137,10 @@ public class Playlist {
 
     public String getPlaylistPath() {
         return playlistPath;
+    }
+
+    public boolean hasSongs() {
+        return !playlistSongs.isEmpty();
     }
 
     public void indexSongs(final OnSongsIndexedListener listener) {
@@ -154,10 +174,6 @@ public class Playlist {
         }
 
         return 0;
-    }
-
-    public boolean hasSongs() {
-        return !playlistSongs.isEmpty();
     }
 
     public void nextSong() {
@@ -195,6 +211,15 @@ public class Playlist {
         songName = songName.replaceAll("([0-9 .-]+)$", "");
 
         return songName;
+    }
+
+    public void recordAnswer(PlaylistSong song, String choice, boolean correct) {
+        if (!correct) {
+            currentStreak = 0;
+            song.mistakes.add(choice);
+        } else {
+            ++currentStreak;
+        }
     }
 
     public void rename(String name) {

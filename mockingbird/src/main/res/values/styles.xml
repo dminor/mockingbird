@@ -8,4 +8,10 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="StreakText" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textColor">#ff19c64d</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAlignment">viewEnd</item>
+    </style>
+
 </resources>

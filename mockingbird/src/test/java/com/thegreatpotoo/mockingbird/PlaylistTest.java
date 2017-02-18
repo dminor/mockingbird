@@ -34,27 +34,25 @@ public class PlaylistTest {
     public void choicesForSong_isCorrect() throws Exception {
         Playlist playlist = new Playlist(mContext, playlistFolder.getRoot().getPath());
 
-        ArrayList<String> choices = playlist.choicesForSong("elephant bird");
-        assertEquals(1, choices.size());
-
         playlistFolder.newFile("bird.ogg");
         playlistFolder.newFile("bird 2.ogg");
         playlistFolder.newFile("bird 4.ogg");
         playlist.indexSongsSync();
         assertEquals(3, playlistFolder.getRoot().listFiles().length);
 
-        choices = playlist.choicesForSong("bird");
+        ArrayList<String> choices = playlist.choicesForSong(playlist.getSong(0));
         assertEquals(1, choices.size());
+        assertEquals(true, choices.contains(playlist.getSong(0).prettifiedName));
 
         playlistFolder.newFile("other bird.ogg");
         playlist.indexSongsSync();
-        choices = playlist.choicesForSong("bird");
+        choices = playlist.choicesForSong(playlist.getSong(0));
         assertEquals(2, choices.size());
 
         playlistFolder.newFile("yet another bird.ogg");
         playlistFolder.newFile("super rare bird.ogg");
         playlist.indexSongsSync();
-        choices = playlist.choicesForSong("bird");
+        choices = playlist.choicesForSong(playlist.getSong(0));
         assertEquals(3, choices.size());
 
         HashMap<String, Boolean> s = new HashMap<>();
@@ -63,6 +61,16 @@ public class PlaylistTest {
         }
 
         assertEquals(3, s.size());
+
+        playlist.recordAnswer(playlist.getSong(0), "ivory-billed woodpecker", true);
+        choices = playlist.choicesForSong(playlist.getSong(0));
+        assertEquals(3, choices.size());
+        assertEquals(false, choices.contains("ivory-billed woodpecker"));
+
+        playlist.recordAnswer(playlist.getSong(0), "ivory-billed woodpecker", false);
+        choices = playlist.choicesForSong(playlist.getSong(0));
+        assertEquals(3, choices.size());
+        assertEquals(true, choices.contains("ivory-billed woodpecker"));
     }
 
     @Test

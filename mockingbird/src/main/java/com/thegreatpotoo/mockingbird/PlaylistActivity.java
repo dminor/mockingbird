@@ -246,7 +246,7 @@ public class PlaylistActivity extends AppCompatActivity
             mediaPlayer.reset();
         }
 
-        Playlist.PlaylistSong song = playlist.currentSong();
+        final Playlist.PlaylistSong song = playlist.currentSong();
         try {
             mediaPlayer.setDataSource(this, song.uri);
             mediaPlayer.prepare();
@@ -260,11 +260,10 @@ public class PlaylistActivity extends AppCompatActivity
             mediaPlayer.start();
         }
 
-        ArrayList<String> choices = playlist.choicesForSong(song.prettifiedName);
-        if (useBirdCodes) {
-            for (int i = 0; i < choices.size(); ++i) {
-                choices.set(i, birdCodes.getCode(choices.get(i)));
-            }
+        final ArrayList<String> choices = playlist.choicesForSong(song);
+        final ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < choices.size(); ++i) {
+            labels.add(useBirdCodes ? birdCodes.getCode(choices.get(i)) : choices.get(i));
         }
 
         final String songName = useBirdCodes ? birdCodes.getCode(song.prettifiedName) : song.prettifiedName;
@@ -284,6 +283,10 @@ public class PlaylistActivity extends AppCompatActivity
                 final LayerDrawable ld = (LayerDrawable) playlistImageView.getDrawable();
 
                 boolean correct = button.getText().equals(songName);
+
+                int index = labels.indexOf(button.getText());
+                String choice = choices.get(index);
+                playlist.recordAnswer(song, choice, correct);
 
                 if (correct) {
                     ld.getDrawable(1).setAlpha(0);
@@ -365,14 +368,14 @@ public class PlaylistActivity extends AppCompatActivity
         };
 
         final Button firstButton = (Button) this.findViewById(R.id.firstButton);
-        firstButton.setText(choices.get(0));
+        firstButton.setText(labels.get(0));
         firstButton.setOnClickListener(clickListener);
 
         final Button secondButton = (Button) this.findViewById(R.id.secondButton);
         secondButton.setOnClickListener(clickListener);
         if (choices.size() >= 2) {
             secondButton.setVisibility(View.VISIBLE);
-            secondButton.setText(choices.get(1));
+            secondButton.setText(labels.get(1));
         } else {
             secondButton.setVisibility(View.INVISIBLE);
         }
@@ -381,9 +384,17 @@ public class PlaylistActivity extends AppCompatActivity
         thirdButton.setOnClickListener(clickListener);
         if (choices.size() == 3) {
             thirdButton.setVisibility(View.VISIBLE);
-            thirdButton.setText(choices.get(2));
+            thirdButton.setText(labels.get(2));
         } else {
             thirdButton.setVisibility(View.INVISIBLE);
+        }
+
+        final TextView currentStreakTextView = (TextView) this.findViewById(R.id.currentStreakTextView);
+        if (playlist.getCurrentStreak() > 0) {
+            currentStreakTextView.setVisibility(View.VISIBLE);
+            currentStreakTextView.setText(String.format(getResources().getString(R.string.in_a_row), playlist.getCurrentStreak()));
+        } else {
+            currentStreakTextView.setVisibility(View.INVISIBLE);
         }
 
         updatePlayPauseState();

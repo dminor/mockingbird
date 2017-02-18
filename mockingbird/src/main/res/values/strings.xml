@@ -25,4 +25,5 @@
     <string name="use_birdcodes_setting_summary">Use four letter bird banding codes instead of names </string>
     <string name="xenocanto_quality_setting">Xeno-Canto Recording Quality</string>
     <string name="xenocanto_quality_summary">Restrict Xeno-Canto recordings to this quality or better</string>
+    <string name="in_a_row">%1$d in a row</string>
 </resources>
