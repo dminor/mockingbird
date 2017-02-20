@@ -28,7 +28,11 @@ public class BirdCodes {
     private HashMap<String, String> codes;
 
     public String getCode(String s) {
-        return codes.get(s.toLowerCase());
+        String result = codes.get(s.toLowerCase());
+        if (result == null) {
+            result = s;
+        }
+        return result;
     }
 
     public void read(InputStream ins) {

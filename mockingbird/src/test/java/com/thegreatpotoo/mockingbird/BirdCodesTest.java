@@ -62,7 +62,7 @@ public class BirdCodesTest {
         assertEquals("BCCH", bc.getCode("black-capped chickadee"));
         assertEquals("IBWO", bc.getCode("ivory-billed woodpecker"));
         assertEquals("PFGO", bc.getCode("pink-footed goose"));
-        assertEquals(null, bc.getCode("not actually a bird"));
+        assertEquals("not actually a bird", bc.getCode("not actually a bird"));
     }
 
 }
