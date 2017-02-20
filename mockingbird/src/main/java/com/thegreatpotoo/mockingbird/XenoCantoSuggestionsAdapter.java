@@ -36,8 +36,7 @@ import java.util.ArrayList;
 
 class XenoCantoSuggestionsAdapter extends ArrayAdapter<String> implements Filterable {
 
-    // it would be nice to not use an "internal" api for this...
-    private String QUERY_URL = "http://www.xeno-canto.org/api/internal/completion/species?query=";
+
     private ArrayList<String> suggestions;
     private String searchString;
 
@@ -63,7 +62,7 @@ class XenoCantoSuggestionsAdapter extends ArrayAdapter<String> implements Filter
             protected FilterResults performFiltering(CharSequence constraint) {
                 FilterResults filterResults = new FilterResults();
                 if (constraint != null) {
-                    ArrayList<String> searchSuggestions = getXenoCantoSearchSuggestions();
+                    ArrayList<String> searchSuggestions = XenoCanto.getInstance().searchSuggestions(searchString);
                     filterResults.values = searchSuggestions;
                     filterResults.count = searchSuggestions.size();
                 }
@@ -86,47 +85,5 @@ class XenoCantoSuggestionsAdapter extends ArrayAdapter<String> implements Filter
 
     public void setSearchString(String s) {
         searchString = s;
-        //notifyDataSetChanged();
-    }
-
-    private ArrayList<String> getXenoCantoSearchSuggestions() {
-        ArrayList<String> searchSuggestions = new ArrayList<String>();
-        String jsonResult = null;
-        try {
-            searchString = URLEncoder.encode(searchString, "UTF-8");
-            URL url = new URL(QUERY_URL + searchString);
-            URLConnection conn = url.openConnection();
-            conn.connect();
-            InputStream is = conn.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 8);
-            StringBuilder sb = new StringBuilder();
-
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
-            }
-
-            jsonResult = sb.toString();
-            is.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-
-        }
-
-        if (jsonResult != null) {
-            try {
-                JSONObject json = new JSONObject(jsonResult);
-                JSONArray data = json.getJSONArray("data");
-                for (int i = 0; i < data.length(); ++i)  {
-                    JSONObject datum = data.getJSONObject(i);
-                    searchSuggestions.add(datum.getString("common_name"));
-                }
-            } catch (JSONException e) {
-
-            }
-        }
-
-        return searchSuggestions;
     }
 }

@@ -56,37 +56,9 @@ import java.util.ArrayList;
 public class XenoCantoActivity extends AppCompatActivity
         implements AudioManager.OnAudioFocusChangeListener {
 
-    private String QUERY_URL = "http://www.xeno-canto.org/api/2/recordings?query=";
-
-    class SearchResult {
-        String id;
-        String name;
-        String file;
-        String loc;
-        String date;
-        String q;
-
-        public SearchResult(JSONObject json) {
-            try {
-                id = json.getString("id");
-                name = json.getString("en");
-                file = json.getString("file");
-                loc = json.getString("loc");
-                date = json.getString("date");
-                q = json.getString("q");
-            } catch (JSONException e) {
-
-            }
-        }
-
-        public String toString() {
-            return name + " (" + loc + ", " + date + ")";
-        }
-    }
-
-    private ArrayList<SearchResult> searchResults;
+    private ArrayList<XenoCanto.SearchResult> searchResults;
     private int currentSearchResult;
-    private ArrayAdapter<SearchResult> searchAdapter;
+    private ArrayAdapter<XenoCanto.SearchResult> searchAdapter;
 
     private XenoCantoSuggestionsAdapter suggestionsAdapter;
 
@@ -141,9 +113,9 @@ public class XenoCantoActivity extends AppCompatActivity
             return;
         }
 
-        searchResults = new ArrayList<SearchResult>();
+        searchResults = new ArrayList<XenoCanto.SearchResult>();
         currentSearchResult = -1;
-        searchAdapter = new ArrayAdapter<SearchResult>(this, android.R.layout.simple_list_item_1, searchResults);
+        searchAdapter = new ArrayAdapter<XenoCanto.SearchResult>(this, android.R.layout.simple_list_item_1, searchResults);
         searchResultListView.setAdapter(searchAdapter);
         searchResultListView.setSelector(android.R.color.darker_gray);
 
@@ -178,55 +150,9 @@ public class XenoCantoActivity extends AppCompatActivity
                     return -1;
                 }
 
-                String result = null;
-                HttpURLConnection conn = null;
-                InputStream is = null;
-                try {
-                    //TODO: we don't handle paged results here
-                    URL url = new URL(QUERY_URL + searchTerm);
-                    conn = (HttpURLConnection) url.openConnection();
-                    conn.connect();
-                    is = conn.getInputStream();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 8);
-                    StringBuilder sb = new StringBuilder();
-
-                    String line = null;
-                    while ((line = reader.readLine()) != null)
-                    {
-                        sb.append(line + "\n");
-                    }
-                    result = sb.toString();
-                    is.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return -1;
-                } finally {
-                    try {
-                        if (is != null) {
-                            is.close();
-                        }
-                    } catch (IOException e) {
-                    }
-
-                    if (conn != null) {
-                        conn.disconnect();
-                    }
-                }
-
-                if (result != null) {
-                    try {
-                        JSONObject json = new JSONObject(result);
-                        JSONArray recordings = json.getJSONArray("recordings");
-                        searchResults.clear();
-                        currentSearchResult = -1;
-                        for (int i = 0; i < recordings.length(); ++i)  {
-                            JSONObject recording = recordings.getJSONObject(i);
-                            searchResults.add(new SearchResult(recording));
-                        }
-                    } catch (JSONException e) {
-                        return -1;
-                    }
-                }
+                currentSearchResult = -1;
+                searchResults.clear();
+                searchResults.addAll(XenoCanto.getInstance().search(searchTerm));
 
                 return 0;
             }
@@ -330,7 +256,7 @@ public class XenoCantoActivity extends AppCompatActivity
             return;
         }
 
-        SearchResult sr = searchResults.get(currentSearchResult);
+        XenoCanto.SearchResult sr = searchResults.get(currentSearchResult);
         DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(sr.file));
         request.setDestinationUri(Uri.parse("file://" + playlistPath + "/" + sr.name + "-xc" + sr.id + ".mp3"));
@@ -366,7 +292,7 @@ public class XenoCantoActivity extends AppCompatActivity
             }
         });
 
-        SearchResult sr = searchResults.get(currentSearchResult);
+        XenoCanto.SearchResult sr = searchResults.get(currentSearchResult);
         Uri song = Uri.parse(sr.file);
         try {
             mediaPlayer.setDataSource(this, song);
