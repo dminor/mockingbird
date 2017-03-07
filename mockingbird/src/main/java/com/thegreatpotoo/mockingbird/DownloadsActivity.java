@@ -46,6 +46,8 @@ public class DownloadsActivity extends AppCompatActivity
     private int selectedFile;
     private ArrayAdapter<Playlist.PlaylistSong> adapter;
 
+    private MockingbirdDatabase mockingbirdDatabase;
+
     @Override
     public void onAudioFocusChange(int focusChange) {
         switch (focusChange) {
@@ -87,11 +89,13 @@ public class DownloadsActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_downloads);
 
+        mockingbirdDatabase = new MockingbirdDatabase(this);
+
         playlistPath = getIntent().getStringExtra("playlistPath");
-        playlist = new Playlist(this, playlistPath);
+        playlist = new Playlist(mockingbirdDatabase, playlistPath);
 
         downloadsPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
-        downloads = new Playlist(this, downloadsPath);
+        downloads = new Playlist(mockingbirdDatabase, downloadsPath);
         downloads.indexSongs(new Playlist.OnSongsIndexedListener() {
             @Override
             public void onSongsIndexed() {

@@ -17,35 +17,34 @@
 
 package com.thegreatpotoo.mockingbird;
 
-import android.content.Context;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import static org.mockito.Mockito.*;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class PlaylistTest {
-
-    Context mContext;
 
     @Rule
     public TemporaryFolder playlistFolder = new TemporaryFolder();
 
     @Test
     public void choicesForSong_isCorrect() throws Exception {
-        Playlist playlist = new Playlist(mContext, playlistFolder.getRoot().getPath());
+        MockingbirdDatabase mockingbirdDatabase = mock(MockingbirdDatabase.class);
+        Playlist playlist = new Playlist(mockingbirdDatabase, playlistFolder.getRoot().getPath());
 
         playlistFolder.newFile("bird.ogg");
         playlistFolder.newFile("bird 2.ogg");
@@ -88,7 +87,8 @@ public class PlaylistTest {
 
     @Test
     public void deleteSong_isCorrect() throws Exception {
-        Playlist playlist = new Playlist(mContext, playlistFolder.getRoot().getPath());
+        MockingbirdDatabase mockingbirdDatabase = mock(MockingbirdDatabase.class);
+        Playlist playlist = new Playlist(mockingbirdDatabase, playlistFolder.getRoot().getPath());
 
         playlistFolder.newFile("test.ogg");
         playlist.indexSongsSync();
@@ -101,19 +101,22 @@ public class PlaylistTest {
 
     @Test
     public void getName_isCorrect() throws Exception {
-        Playlist playlist = new Playlist(mContext, playlistFolder.getRoot().getPath());
+        MockingbirdDatabase mockingbirdDatabase = mock(MockingbirdDatabase.class);
+        Playlist playlist = new Playlist(mockingbirdDatabase, playlistFolder.getRoot().getPath());
         assertEquals(playlistFolder.getRoot().getName(), playlist.getName());
     }
 
     @Test
     public void getPlaylistPath_isCorrect() throws Exception {
-        Playlist playlist = new Playlist(mContext, playlistFolder.getRoot().getPath());
+        MockingbirdDatabase mockingbirdDatabase = mock(MockingbirdDatabase.class);
+        Playlist playlist = new Playlist(mockingbirdDatabase, playlistFolder.getRoot().getPath());
         assertEquals(playlistFolder.getRoot().getPath(), playlist.getPlaylistPath());
     }
 
     @Test
     public void indexSongs_isCorrect() throws Exception {
-        Playlist playlist = new Playlist(mContext, playlistFolder.getRoot().getPath());
+        MockingbirdDatabase mockingbirdDatabase = mock(MockingbirdDatabase.class);
+        Playlist playlist = new Playlist(mockingbirdDatabase, playlistFolder.getRoot().getPath());
         assertEquals(false, playlist.hasSongs());
 
         playlist.indexSongsSync();
@@ -145,7 +148,8 @@ public class PlaylistTest {
 
     @Test
     public void prettifySongName_isCorrect() throws Exception {
-        Playlist playlist = new Playlist(mContext, playlistFolder.getRoot().getPath());
+        MockingbirdDatabase mockingbirdDatabase = mock(MockingbirdDatabase.class);
+        Playlist playlist = new Playlist(mockingbirdDatabase, playlistFolder.getRoot().getPath());
 
         assertEquals("", playlist.prettifySongName(""));
         assertEquals("a really awesome bird", playlist.prettifySongName("a really awesome bird.ogg"));
@@ -155,5 +159,4 @@ public class PlaylistTest {
         assertEquals("awesome bird", playlist.prettifySongName("awesome bird - 04.ogg"));
         assertEquals("dickcissel", playlist.prettifySongName("dickcissel (Bigus dickus).mp3"));
     }
-
 }

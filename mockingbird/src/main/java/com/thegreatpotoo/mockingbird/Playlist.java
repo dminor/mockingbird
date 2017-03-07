@@ -35,9 +35,10 @@ public class Playlist {
         void onSongsIndexed();
     }
 
-    private Context context;
+    //private Context context;
     private String playlistPath;
 
+    private long databaseID;
 
     public class PlaylistSong {
         public PlaylistSong(String fileName) {
@@ -45,7 +46,10 @@ public class Playlist {
             fullPath = playlistPath + "/" + fileName;
             uri = Uri.parse(fullPath);
             prettifiedName = "";
+            databaseID = -1;
 
+            correct = 0;
+            attempts = 0;
             mistakes = new ArrayList<>();
         }
 
@@ -58,6 +62,10 @@ public class Playlist {
         public String prettifiedName;
         public Uri uri;
 
+        public long databaseID;
+
+        public int correct;
+        public int attempts;
         public ArrayList<String> mistakes;
     }
 
@@ -66,14 +74,18 @@ public class Playlist {
 
     private Random random = new Random();
 
+    private MockingbirdDatabase mockingbirdDatabase;
+
     private int currentStreak;
 
-    public Playlist(Context c, String path) {
-        context = c;
+    public Playlist(MockingbirdDatabase db, String path) {
         playlistPath = path;
         playlistSongs = new ArrayList<>();
         currentSong = 0;
         currentStreak = 0;
+
+        mockingbirdDatabase = db;
+        databaseID = mockingbirdDatabase.retrieveOrCreatePlaylist(this);
     }
 
     public ArrayList<String> choicesForSong(PlaylistSong song) {
@@ -124,6 +136,10 @@ public class Playlist {
         PlaylistSong song = playlistSongs.get(index);
         if (song.prettifiedName.isEmpty()) {
             song.prettifiedName = prettifySongName(song.fileName);
+        }
+
+        if (song.databaseID == -1) {
+            mockingbirdDatabase.retrieveOrCreatePlaylistSong(databaseID, song);
         }
 
         return song;
@@ -191,7 +207,7 @@ public class Playlist {
         // Attempt to get song name from media metadata. If it is not set or this just fails, we try
         // to do something sensible with the file name itself.
         MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-        mmr.setDataSource(context, uri);
+        mmr.setDataSource(playlistPath + "/" + fileName);
         String songName = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
         if (songName == null || songName.length() == 0) {
             int lastdot = fileName.lastIndexOf('.');
@@ -219,7 +235,11 @@ public class Playlist {
             song.mistakes.add(choice);
         } else {
             ++currentStreak;
+            song.correct += 1;
         }
+        song.attempts += 1;
+
+        mockingbirdDatabase.recordAnswer(song, choice, correct);
     }
 
     public void rename(String name) {
@@ -227,6 +247,7 @@ public class Playlist {
         String basePath = playlistPath.substring(0, playlistPath.lastIndexOf('/') + 1);
         File newDir = new File(basePath + name);
         if (dir.renameTo(newDir)) {
+            mockingbirdDatabase.renamePlaylist(this, basePath + name);
             playlistPath = basePath + name;
         }
     }

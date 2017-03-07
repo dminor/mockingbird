@@ -42,6 +42,8 @@ public class EditPlaylistActivity extends AppCompatActivity
     private int selectedSong;
     private ArrayAdapter<Playlist.PlaylistSong> adapter;
 
+    private MockingbirdDatabase mockingbirdDatabase;
+
     @Override
     public void onAudioFocusChange(int focusChange) {
         switch (focusChange) {
@@ -83,8 +85,10 @@ public class EditPlaylistActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_playlist);
 
+        mockingbirdDatabase = new MockingbirdDatabase(this);
+
         String playlistPath = getIntent().getStringExtra("playlistPath");
-        playlist = new Playlist(this, playlistPath);
+        playlist = new Playlist(mockingbirdDatabase, playlistPath);
         playlist.indexSongs(new Playlist.OnSongsIndexedListener() {
             @Override
             public void onSongsIndexed() {

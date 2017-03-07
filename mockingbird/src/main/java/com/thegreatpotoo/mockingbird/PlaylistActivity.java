@@ -60,6 +60,8 @@ public class PlaylistActivity extends AppCompatActivity
     private BirdCodes birdCodes;
     private boolean useBirdCodes;
 
+    private MockingbirdDatabase mockingbirdDatabase;
+
     @Override
     public void onAudioFocusChange(int focusChange) {
         switch (focusChange) {
@@ -103,8 +105,10 @@ public class PlaylistActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(com.thegreatpotoo.mockingbird.R.layout.activity_playlist);
 
+        mockingbirdDatabase = new MockingbirdDatabase(this);
+
         playlistPath = getIntent().getStringExtra("playlistPath");
-        playlist = new Playlist(this, playlistPath);
+        playlist = new Playlist(mockingbirdDatabase, playlistPath);
 
         currentlyPlaying = true;
         currentPosition = 0;
