@@ -258,6 +258,7 @@ public class Playlist {
             playlistSongs.add(new PlaylistSong(s));
         }
         currentSong = savedInstanceState.getInt("currentSong");
+        currentStreak = savedInstanceState.getInt("currentStreak");
     }
 
     public void save(Bundle savedInstanceState) {
@@ -269,6 +270,7 @@ public class Playlist {
         }
         savedInstanceState.putStringArrayList("playlistSongs", fileNames);
         savedInstanceState.putInt("currentSong", currentSong);
+        savedInstanceState.putInt("currentStreak", currentStreak);
     }
 
     public void shuffle() {
