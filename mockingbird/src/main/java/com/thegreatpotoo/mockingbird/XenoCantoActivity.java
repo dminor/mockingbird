@@ -128,7 +128,7 @@ public class XenoCantoActivity extends AppCompatActivity
                     currentSearchResult = position;
 
                     if (mediaPlayer != null) {
-                        mediaPlayer.stop();
+                        mediaPlayer.release();
                         mediaPlayer = null;
                         playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.play_label);
                     }
