@@ -85,47 +85,53 @@ public class XenoCanto {
         HttpURLConnection conn = null;
         InputStream is = null;
         ArrayList<SearchResult> searchResults = new ArrayList<>();
-        try {
-            //TODO: we don't handle paged results here
-            URL url = new URL(SEARCH_URL + searchTerm);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.connect();
-            is = conn.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 8);
-            StringBuilder sb = new StringBuilder();
 
-            String line = null;
-            while ((line = reader.readLine()) != null)
-            {
-                sb.append(line + "\n");
-            }
-            result = sb.toString();
-            is.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
+        int currentPage = 1;
+        int numPages = 1;
+
+        while (currentPage <= numPages) {
             try {
-                if (is != null) {
-                    is.close();
+                URL url = new URL(SEARCH_URL + searchTerm + "&page=" + String.valueOf(currentPage));
+                conn = (HttpURLConnection) url.openConnection();
+                conn.connect();
+                is = conn.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"), 8);
+                StringBuilder sb = new StringBuilder();
+
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "\n");
                 }
+                result = sb.toString();
+                is.close();
             } catch (IOException e) {
-            }
-
-            if (conn != null) {
-                conn.disconnect();
-            }
-        }
-
-        if (result != null) {
-            try {
-                JSONObject json = new JSONObject(result);
-                JSONArray recordings = json.getJSONArray("recordings");
-                for (int i = 0; i < recordings.length(); ++i)  {
-                    JSONObject recording = recordings.getJSONObject(i);
-                    searchResults.add(new SearchResult(recording));
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (is != null) {
+                        is.close();
+                    }
+                } catch (IOException e) {
                 }
-            } catch (JSONException e) {
+
+                if (conn != null) {
+                    conn.disconnect();
+                }
             }
+
+            if (result != null) {
+                try {
+                    JSONObject json = new JSONObject(result);
+                    numPages = json.getInt("numPages");
+                    JSONArray recordings = json.getJSONArray("recordings");
+                    for (int i = 0; i < recordings.length(); ++i) {
+                        JSONObject recording = recordings.getJSONObject(i);
+                        searchResults.add(new SearchResult(recording));
+                    }
+                } catch (JSONException e) {
+                }
+            }
+            ++currentPage;
         }
 
         return searchResults;

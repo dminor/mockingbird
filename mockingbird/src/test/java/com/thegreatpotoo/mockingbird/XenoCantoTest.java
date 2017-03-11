@@ -76,6 +76,60 @@ public class XenoCantoTest {
     }
 
     @Test
+    public void search_withPagedResults_isCorrect() throws Exception {
+        MockWebServer server = new MockWebServer();
+
+        InputStream is = this.getClass().getClassLoader().getResourceAsStream("xeno-canto-search-results-page1.json");
+        StringBuilder sb = new StringBuilder(213 * 1024);
+        try {
+            Reader r = new InputStreamReader(is, "UTF-8");
+            char[] buffer = new char[1024];
+            while (r.read(buffer) != -1) {
+                sb.append(buffer);
+            }
+        } catch (IOException e) {
+        }
+
+        MockResponse response = new MockResponse()
+                .addHeader("Content-Type", "application/json; charset=utf-8")
+                .setBody(sb.toString());
+
+        server.enqueue(response);
+
+        is = this.getClass().getClassLoader().getResourceAsStream("xeno-canto-search-results-page2.json");
+        sb = new StringBuilder(208 * 1024);
+        try {
+            Reader r = new InputStreamReader(is, "UTF-8");
+            char[] buffer = new char[1024];
+            while (r.read(buffer) != -1) {
+                sb.append(buffer);
+            }
+        } catch (IOException e) {
+        }
+
+        response = new MockResponse()
+                .addHeader("Content-Type", "application/json; charset=utf-8")
+                .setBody(sb.toString());
+
+        server.enqueue(response);
+
+        server.start();
+        XenoCanto.getInstance().SEARCH_URL = server.url("/").toString();
+        ArrayList<XenoCanto.SearchResult> searchResults = XenoCanto.getInstance().search("House Wren");
+
+        assertTrue(!searchResults.isEmpty());
+        assertEquals(995, searchResults.size());
+
+        XenoCanto.SearchResult searchResult = searchResults.get(200);
+        assertEquals("Troglodytes", searchResult.genus);
+        assertEquals("aedon", searchResult.species);
+        assertEquals("House Wren", searchResult.name);
+        assertEquals("song", searchResult.type);
+
+        server.shutdown();
+    }
+
+    @Test
     public void searchSuggestions_isCorrect() throws Exception {
         MockWebServer server = new MockWebServer();
 
