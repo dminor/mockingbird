@@ -170,6 +170,12 @@ public class XenoCantoActivity extends AppCompatActivity
         if (searchButton != null && searchEditText != null) {
             searchButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
+                    if (mediaPlayer != null) {
+                        mediaPlayer.release();
+                        mediaPlayer = null;
+                        playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.play_label);
+                    }
+
                     String searchText = searchEditText.getText().toString();
                     new SearchXenoCantoTask().execute(searchText);
                 }
