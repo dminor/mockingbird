@@ -92,7 +92,7 @@ public class Playlist {
         ArrayList<String> result = new ArrayList<>();
         result.add(song.prettifiedName);
 
-        if (!song.mistakes.isEmpty()) {
+        if (!song.mistakes.isEmpty() && random.nextBoolean()) {
             int i = random.nextInt(song.mistakes.size());
             result.add(song.mistakes.get(i));
         }

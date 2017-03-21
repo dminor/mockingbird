@@ -26,8 +26,10 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -45,6 +47,12 @@ public class PlaylistTest {
     public void choicesForSong_isCorrect() throws Exception {
         MockingbirdDatabase mockingbirdDatabase = mock(MockingbirdDatabase.class);
         Playlist playlist = new Playlist(mockingbirdDatabase, playlistFolder.getRoot().getPath());
+
+        // Set random seed to get predictable results while testing
+        Field field = playlist.getClass().getDeclaredField("random");
+        field.setAccessible(true);
+        Random random = (Random)field.get(playlist);
+        random.setSeed(1);
 
         playlistFolder.newFile("bird.ogg");
         playlistFolder.newFile("bird 2.ogg");
