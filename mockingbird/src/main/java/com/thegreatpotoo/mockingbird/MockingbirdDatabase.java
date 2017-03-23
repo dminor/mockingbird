@@ -33,9 +33,9 @@ public class MockingbirdDatabase extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table playlist(path text)");
-        db.execSQL("create table song(playlist int, name text)");
-        db.execSQL("create table answers(song int, choice text, correct int, time int)");
+        db.execSQL("create table playlists(path text)");
+        db.execSQL("create table songs(playlist int, name text, bin int)");
+        db.execSQL("create table mistakes(song int, choice text, time int)");
     }
 
     @Override
@@ -43,15 +43,27 @@ public class MockingbirdDatabase extends SQLiteOpenHelper {
 
     }
 
+    public void deleteSong(Playlist.PlaylistSong song) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        db.delete("mistakes", "song=?", new String[]{String.valueOf(song.databaseID)});
+        db.delete("songs", "rowid=?", new String[]{String.valueOf(song.databaseID)});
+    }
+
     public void recordAnswer(Playlist.PlaylistSong song, String choice, boolean correct) {
         SQLiteDatabase db = getWritableDatabase();
 
+        if (!correct) {
+            ContentValues cv = new ContentValues();
+            cv.put("song", song.databaseID);
+            cv.put("choice", choice);
+            cv.put("time", System.currentTimeMillis());
+            db.insertOrThrow("mistakes", null, cv);
+        }
+
         ContentValues cv = new ContentValues();
-        cv.put("song", song.databaseID);
-        cv.put("choice", choice);
-        cv.put("correct", correct);
-        cv.put("time", System.currentTimeMillis());
-        db.insertOrThrow("answers", null, cv);
+        cv.put("bin", song.bin);
+        db.update("songs", cv, "rowid=?", new String[]{String.valueOf(song.databaseID)});
     }
 
     public void renamePlaylist(Playlist playlist, String path) {
@@ -60,12 +72,12 @@ public class MockingbirdDatabase extends SQLiteOpenHelper {
         ContentValues cv = new ContentValues();
         cv.put("path", path);
 
-        db.update("playlist", cv, "path=?", new String[]{playlist.getPlaylistPath()});
+        db.update("playlists", cv, "path=?", new String[]{playlist.getPlaylistPath()});
     }
 
     public long retrieveOrCreatePlaylist(Playlist playlist) {
         SQLiteDatabase db = getWritableDatabase();
-        Cursor cursor = db.rawQuery("select rowid from playlist where path=?", new String[]{playlist.getPlaylistPath()});
+        Cursor cursor = db.rawQuery("select rowid from playlists where path=?", new String[]{playlist.getPlaylistPath()});
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             long databaseID = cursor.getInt(0);
@@ -74,33 +86,29 @@ public class MockingbirdDatabase extends SQLiteOpenHelper {
         } else {
             ContentValues cv = new ContentValues();
             cv.put("path", playlist.getPlaylistPath());
-            return db.insertOrThrow("playlist", null, cv);
+            return db.insertOrThrow("playlists", null, cv);
         }
     }
 
     public void retrieveOrCreatePlaylistSong(long playlistDatabaseID, Playlist.PlaylistSong song) {
         SQLiteDatabase db = getWritableDatabase();
-        Cursor cursor = db.rawQuery("select rowid from song where playlist=? and name=?",
+        Cursor cursor = db.rawQuery("select rowid, bin from songs where playlist=? and name=?",
                                     new String[]{String.valueOf(playlistDatabaseID), song.fileName});
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             song.databaseID = cursor.getInt(0);
+            song.bin = cursor.getInt(1);
 
             //Don't retain too much data
-            long thirtyDaysAgo = System.currentTimeMillis() - 1000L*60L*60L*24L*30L;
-            db.delete("answers", "song=? and time<?",
-                      new String[]{String.valueOf(song.databaseID), String.valueOf(thirtyDaysAgo)});
+            long twoWeeksAgo = System.currentTimeMillis() - 1000L*60L*60L*24L*14L;
+            db.delete("mistakes", "song=? and time<?",
+                      new String[]{String.valueOf(song.databaseID), String.valueOf(twoWeeksAgo)});
 
-            cursor = db.rawQuery("select choice, correct from answers where song=?",
+            cursor = db.rawQuery("select choice from mistakes where song=?",
                                  new String[]{String.valueOf(song.databaseID)});
 
             while (cursor.moveToNext()) {
-                if (cursor.getInt(1) == 0) {
-                    song.mistakes.add(cursor.getString(0));
-                } else {
-                    song.correct += 1;
-                }
-                song.attempts += 1;
+                song.mistakes.add(cursor.getString(0));
             }
 
             cursor.close();
@@ -108,7 +116,7 @@ public class MockingbirdDatabase extends SQLiteOpenHelper {
             ContentValues cv = new ContentValues();
             cv.put("playlist", playlistDatabaseID);
             cv.put("name", song.fileName);
-            song.databaseID = db.insertOrThrow("song", null, cv);
+            song.databaseID = db.insertOrThrow("songs", null, cv);
         }
     }
 }

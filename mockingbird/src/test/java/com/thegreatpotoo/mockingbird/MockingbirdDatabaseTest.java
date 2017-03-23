@@ -43,6 +43,28 @@ public class MockingbirdDatabaseTest {
     public TemporaryFolder playlistFolder = new TemporaryFolder();
 
     @Test
+    public void deleteSong_isCorrect() throws Exception {
+        MockingbirdDatabase mockingbirdDatabase = new MockingbirdDatabase(RuntimeEnvironment.application);
+        SQLiteDatabase db = mockingbirdDatabase.getWritableDatabase();
+
+        Playlist p = new Playlist(mockingbirdDatabase, playlistFolder.getRoot().getPath());
+
+        playlistFolder.newFile("bird.ogg");
+        assertEquals(1, playlistFolder.getRoot().listFiles().length);
+        p.indexSongsSync();
+        Playlist.PlaylistSong song = p.getSong(0);
+        p.recordAnswer(song, "blah", false);
+
+        Cursor cursor = db.rawQuery("select * from songs", null);
+        assertEquals(1, cursor.getCount());
+        cursor = db.rawQuery("select * from mistakes", null);
+        assertEquals(1, cursor.getCount());
+        p.deleteSong(0);
+        cursor = db.rawQuery("select rowid, name, bin from songs", null);
+        assertEquals(0, cursor.getCount());
+    }
+
+    @Test
     public void retrieveOrCreatePlaylistSong_isCorrect() throws Exception {
         MockingbirdDatabase mockingbirdDatabase = new MockingbirdDatabase(RuntimeEnvironment.application);
         SQLiteDatabase db = mockingbirdDatabase.getWritableDatabase();
@@ -54,51 +76,52 @@ public class MockingbirdDatabaseTest {
         p.indexSongsSync();
 
         Playlist.PlaylistSong song = p.getSong(0);
-        Cursor cursor = db.rawQuery("select rowid, name from song", null);
+        Cursor cursor = db.rawQuery("select rowid, name, bin from songs", null);
         assertEquals(1, cursor.getCount());
         cursor.moveToFirst();
         assertEquals(1, cursor.getInt(0));
         assertEquals(song.databaseID, 1);
         assertEquals("bird.ogg", cursor.getString(1));
+        assertEquals(0, cursor.getInt(2));
 
         // Test reading existing answers into song
         Playlist p2 = new Playlist(mockingbirdDatabase, playlistFolder.getRoot().getPath());
         p2.indexSongsSync();
 
-        long thirtyDaysAgo = System.currentTimeMillis() - 1000L*60L*60L*24L*30L;
+        long twoWeeksAgo = System.currentTimeMillis() - 1000L*60L*60L*24L*14L;
 
-        // We expect the old value to be deleted
+        // We expect this old value to be deleted
         ContentValues cv = new ContentValues();
         cv.put("song", song.databaseID);
         cv.put("choice", "bird");
-        cv.put("correct", true);
-        cv.put("time", thirtyDaysAgo - 1);
-        db.insertOrThrow("answers", null, cv);
+        cv.put("time", twoWeeksAgo - 1);
+        db.insertOrThrow("mistakes", null, cv);
 
         cv = new ContentValues();
         cv.put("song", song.databaseID);
         cv.put("choice", "a different bird");
-        cv.put("correct", false);
         cv.put("time", System.currentTimeMillis());
-        db.insertOrThrow("answers", null, cv);
+        db.insertOrThrow("mistakes", null, cv);
 
         cv = new ContentValues();
         cv.put("song", song.databaseID);
         cv.put("choice", "bird");
-        cv.put("correct", true);
         cv.put("time", System.currentTimeMillis());
-        db.insertOrThrow("answers", null, cv);
+        db.insertOrThrow("mistakes", null, cv);
 
-        cursor = db.rawQuery("select rowid from answers", null);
+        cv = new ContentValues();
+        cv.put("bin", 3);
+        db.update("songs", cv, "rowid=?", new String[]{String.valueOf(song.databaseID)});
+
+        cursor = db.rawQuery("select rowid from mistakes", null);
         assertEquals(3, cursor.getCount());
 
         song = p2.getSong(0);
-        cursor = db.rawQuery("select rowid from answers", null);
+        cursor = db.rawQuery("select rowid from mistakes", null);
         assertEquals(2, cursor.getCount());
-        assertEquals(1, song.mistakes.size());
+        assertEquals(2, song.mistakes.size());
         assertEquals("a different bird", song.mistakes.get(0));
-        assertEquals(1, song.correct);
-        assertEquals(2, song.attempts);
+        assertEquals(3, song.bin);
 
         cursor.close();
         db.close();
@@ -116,20 +139,24 @@ public class MockingbirdDatabaseTest {
         assertEquals(1, playlistFolder.getRoot().listFiles().length);
 
         p.recordAnswer(p.getSong(0), "bird", true);
-        Cursor cursor = db.rawQuery("select choice, correct from answers where song=?",
-                                    new String[]{String.valueOf(p.getSong(0).databaseID)});
-        assertEquals(1, cursor.getCount());
+        Cursor cursor = db.rawQuery("select choice from mistakes where song=?",
+                new String[]{String.valueOf(p.getSong(0).databaseID)});
+        assertEquals(0, cursor.getCount());
+        cursor = db.rawQuery("select bin from songs where rowid=?",
+                new String[]{String.valueOf(p.getSong(0).databaseID)});
         cursor.moveToFirst();
-        assertEquals("bird", cursor.getString(0));
-        assertEquals(1, cursor.getInt(1));
+        assertEquals(1, cursor.getInt(0));
 
         p.recordAnswer(p.getSong(0), "another bird", false);
-        cursor = db.rawQuery("select choice, correct from answers where song=?",
+        cursor = db.rawQuery("select choice from mistakes where song=?",
                              new String[]{String.valueOf(p.getSong(0).databaseID)});
-        assertEquals(2, cursor.getCount());
-        cursor.moveToLast();
+        assertEquals(1, cursor.getCount());
+        cursor.moveToFirst();
         assertEquals("another bird", cursor.getString(0));
-        assertEquals(0, cursor.getInt(1));
+        cursor = db.rawQuery("select bin from songs where rowid=?",
+                new String[]{String.valueOf(p.getSong(0).databaseID)});
+        cursor.moveToFirst();
+        assertEquals(0, cursor.getInt(0));
 
         cursor.close();
         db.close();
@@ -142,7 +169,7 @@ public class MockingbirdDatabaseTest {
 
         Playlist p = new Playlist(mockingbirdDatabase, "/a/playlist");
 
-        Cursor cursor = db.rawQuery("select rowid, path from playlist", null);
+        Cursor cursor = db.rawQuery("select rowid, path from playlists", null);
         assertEquals(1, cursor.getCount());
         cursor.moveToFirst();
         assertEquals(1, cursor.getInt(0));
@@ -150,7 +177,7 @@ public class MockingbirdDatabaseTest {
 
         mockingbirdDatabase.renamePlaylist(p, "/another/playlist");
 
-        cursor = db.rawQuery("select rowid, path from playlist", null);
+        cursor = db.rawQuery("select rowid, path from playlists", null);
         assertEquals(1, cursor.getCount());
         cursor.moveToFirst();
         assertEquals(1, cursor.getInt(0));
@@ -166,12 +193,12 @@ public class MockingbirdDatabaseTest {
         SQLiteDatabase db = mockingbirdDatabase.getWritableDatabase();
 
         // Database should start empty
-        Cursor cursor = db.rawQuery("select * from playlist", null);
+        Cursor cursor = db.rawQuery("select * from playlists", null);
         assertEquals(0, cursor.getCount());
 
         // Create a playlist, we should see a row in the database for it
         Playlist p = new Playlist(mockingbirdDatabase, "/a/playlist");
-        cursor = db.rawQuery("select rowid, path from playlist", null);
+        cursor = db.rawQuery("select rowid, path from playlists", null);
         assertEquals(1, cursor.getCount());
         cursor.moveToFirst();
         assertEquals(1, cursor.getInt(0));
@@ -179,7 +206,7 @@ public class MockingbirdDatabaseTest {
 
         // Same path should not result in a new row in the database
         Playlist p2 = new Playlist(mockingbirdDatabase, "/a/playlist");
-        cursor = db.rawQuery("select * from playlist", null);
+        cursor = db.rawQuery("select * from playlists", null);
         assertEquals(1, cursor.getCount());
         cursor.close();
         db.close();

@@ -31,6 +31,8 @@ import java.util.Random;
 
 public class Playlist {
 
+    private int MAX_BINS = 4;
+
     public interface OnSongsIndexedListener {
         void onSongsIndexed();
     }
@@ -48,8 +50,7 @@ public class Playlist {
             prettifiedName = "";
             databaseID = -1;
 
-            correct = 0;
-            attempts = 0;
+            bin = 0;
             mistakes = new ArrayList<>();
         }
 
@@ -64,13 +65,15 @@ public class Playlist {
 
         public long databaseID;
 
-        public int correct;
-        public int attempts;
+        public int bin;
         public ArrayList<String> mistakes;
+
     }
 
     private ArrayList<PlaylistSong> playlistSongs;
     private int currentSong;
+
+    private HashMap<Integer, ArrayList<PlaylistSong>> bins;
 
     private Random random = new Random();
 
@@ -83,6 +86,11 @@ public class Playlist {
         playlistSongs = new ArrayList<>();
         currentSong = 0;
         currentStreak = 0;
+
+        bins = new HashMap<>();
+        for (int i = 0; i < MAX_BINS; ++i) {
+            bins.put(i, new ArrayList<PlaylistSong>());
+        }
 
         mockingbirdDatabase = db;
         databaseID = mockingbirdDatabase.retrieveOrCreatePlaylist(this);
@@ -124,6 +132,7 @@ public class Playlist {
     public void deleteSong(int index) {
         File f = new File(playlistSongs.get(index).fullPath);
         if (f.delete()) {
+            mockingbirdDatabase.deleteSong(playlistSongs.get(index));
             playlistSongs.remove(index);
         }
     }
@@ -140,6 +149,12 @@ public class Playlist {
 
         if (song.databaseID == -1) {
             mockingbirdDatabase.retrieveOrCreatePlaylistSong(databaseID, song);
+
+            if (song.bin >= MAX_BINS) {
+                song.bin = MAX_BINS - 1;
+            }
+
+            bins.get(song.bin).add(song);
         }
 
         return song;
@@ -232,12 +247,17 @@ public class Playlist {
     public void recordAnswer(PlaylistSong song, String choice, boolean correct) {
         if (!correct) {
             currentStreak = 0;
+            bins.get(song.bin).remove(song);
+            song.bin = 0;
+            bins.get(song.bin).add(song);
             song.mistakes.add(choice);
         } else {
             ++currentStreak;
-            song.correct += 1;
+            if (song.bin + 1 < MAX_BINS) {
+                song.bin += 1;
+                bins.get(song.bin).add(song);
+            }
         }
-        song.attempts += 1;
 
         mockingbirdDatabase.recordAnswer(song, choice, correct);
     }
