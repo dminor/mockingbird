@@ -208,11 +208,39 @@ public class Playlist {
     }
 
     public void nextSong() {
-        currentSong = currentSong + 1;
-        if (currentSong == playlistSongs.size()) {
-            shuffle(playlistSongs);
-            currentSong = 0;
+
+        if (playlistSongs.size() <= 1) {
+            return;
         }
+
+        int nextSong = currentSong;
+        while (nextSong == currentSong) {
+            int bin;
+
+            double r = Math.random();
+            if (r <= 0.4) {
+                bin = 0;
+            } else if (r <= 0.7) {
+                bin = 1;
+            } else if (r <= 0.9) {
+                bin = 2;
+            } else {
+                bin = 3;
+            }
+
+            int binSize = bins.get(bin).size();
+            while (binSize == 0) {
+                bin += 1;
+                if (bin == MAX_BINS) {
+                    bin = 0;
+                }
+                binSize = bins.get(bin).size();
+            }
+
+            nextSong = playlistSongs.indexOf(bins.get(bin).get(random.nextInt(binSize)));
+        }
+
+        currentSong = nextSong;
     }
 
     public String prettifySongName(String fileName) {
