@@ -116,6 +116,7 @@ public class MockingbirdDatabase extends SQLiteOpenHelper {
             ContentValues cv = new ContentValues();
             cv.put("playlist", playlistDatabaseID);
             cv.put("name", song.fileName);
+            cv.put("bin", song.bin);
             song.databaseID = db.insertOrThrow("songs", null, cv);
         }
     }

@@ -50,7 +50,7 @@ public class Playlist {
             prettifiedName = "";
             databaseID = -1;
 
-            bin = 0;
+            bin = MAX_BINS - 1;
             mistakes = new ArrayList<>();
         }
 
