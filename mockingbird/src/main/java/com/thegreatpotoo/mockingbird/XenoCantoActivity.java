@@ -139,28 +139,27 @@ public class XenoCantoActivity extends AppCompatActivity
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         final String searchQuality = sharedPref.getString("pref_xenocanto_quality", "q:A");
 
-        class SearchXenoCantoTask extends AsyncTask<String, Void, Integer> {
-            protected Integer doInBackground(String... searchTerms) {
+        class SearchXenoCantoTask extends AsyncTask<String, Void, ArrayList<XenoCanto.SearchResult>> {
+            protected ArrayList<XenoCanto.SearchResult> doInBackground(String... searchTerms) {
 
                 String searchTerm;
                 try {
                     searchTerm = URLEncoder.encode(searchTerms[0] + " " + searchQuality, "UTF-8");
                 } catch(UnsupportedEncodingException e) {
                     e.printStackTrace();
-                    return -1;
+                    return new ArrayList<XenoCanto.SearchResult>();
                 }
 
                 currentSearchResult = -1;
-                searchResults.clear();
-                searchResults.addAll(XenoCanto.getInstance().search(searchTerm));
 
-                return 0;
+
+                return XenoCanto.getInstance().search(searchTerm);
             }
 
-            protected void onPostExecute(Integer result) {
-                if (result == 0) {
-                    searchAdapter.notifyDataSetChanged();
-                }
+            protected void onPostExecute(ArrayList<XenoCanto.SearchResult> results) {
+                searchResults.clear();
+                searchResults.addAll(results);
+                searchAdapter.notifyDataSetChanged();
             }
         }
 
