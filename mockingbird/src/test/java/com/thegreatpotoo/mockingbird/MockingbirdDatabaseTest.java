@@ -82,7 +82,7 @@ public class MockingbirdDatabaseTest {
         assertEquals(1, cursor.getInt(0));
         assertEquals(song.databaseID, 1);
         assertEquals("bird.ogg", cursor.getString(1));
-        assertEquals(0, cursor.getInt(2));
+        assertEquals(3, cursor.getInt(2));
 
         // Test reading existing answers into song
         Playlist p2 = new Playlist(mockingbirdDatabase, playlistFolder.getRoot().getPath());
@@ -145,7 +145,7 @@ public class MockingbirdDatabaseTest {
         cursor = db.rawQuery("select bin from songs where rowid=?",
                 new String[]{String.valueOf(p.getSong(0).databaseID)});
         cursor.moveToFirst();
-        assertEquals(1, cursor.getInt(0));
+        assertEquals(3, cursor.getInt(0));
 
         p.recordAnswer(p.getSong(0), "another bird", false);
         cursor = db.rawQuery("select choice from mistakes where song=?",
