@@ -213,16 +213,26 @@ public class Playlist {
             return;
         }
 
+        double p1 = bins.get(0).size()*3.75;
+        double p2 = bins.get(1).size()*2.5;
+        double p3 = bins.get(2).size()*1.25;
+        double total = p1 + p2 + p3 + bins.get(3).size();
+        p1 /= total;
+        p2 /= total;
+        p3 /= total;
+        p2 += p1;
+        p3 += p2;
+
         int nextSong = currentSong;
         while (nextSong == currentSong) {
             int bin;
 
             double r = Math.random();
-            if (r <= 0.4) {
+            if (r <= p1) {
                 bin = 0;
-            } else if (r <= 0.7) {
+            } else if (r <= p2) {
                 bin = 1;
-            } else if (r <= 0.9) {
+            } else if (r <= p3) {
                 bin = 2;
             } else {
                 bin = 3;
