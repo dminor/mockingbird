@@ -193,10 +193,14 @@ public class PlaylistActivity extends AppCompatActivity
             if (mediaPlayer.isPlaying()) {
                 currentPosition = mediaPlayer.getCurrentPosition();
                 mediaPlayer.stop();
-                AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-                audioManager.abandonAudioFocus(this);
             }
+
+            mediaPlayer.release();
+            mediaPlayer = null;
         }
+
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        audioManager.abandonAudioFocus(this);
     }
 
     @Override

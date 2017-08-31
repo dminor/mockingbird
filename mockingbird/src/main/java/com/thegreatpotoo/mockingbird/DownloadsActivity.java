@@ -163,7 +163,13 @@ public class DownloadsActivity extends AppCompatActivity
             if (mediaPlayer.isPlaying()) {
                 mediaPlayer.stop();
             }
+
+            mediaPlayer.release();
+            mediaPlayer = null;
         }
+
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        audioManager.abandonAudioFocus(this);
     }
 
     @Override
