@@ -5,7 +5,7 @@ in a similar manner to flash card programs like
 [Anki](https://apps.ankiweb.net/) but has some features to make it more
 convienent for learning bird songs.
 
-![Mockingbird splash screen](/docs/screenshots/splash.png?raw=true)
+<img src="/docs/screenshots/splash.png" width="100">
 
 Mockingbird does its best to determine the relevant information about a
 bird from the audio file itself, avoiding the tedious process of creating
