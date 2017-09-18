@@ -5,7 +5,7 @@ in a similar manner to flash card programs like
 [Anki](https://apps.ankiweb.net/) but has some features to make it more
 convienent for learning bird songs.
 
-<img src="/docs/screenshots/splash.png" width="100">
+<img src="/docs/screenshots/splash.png" width="250">
 
 Mockingbird does its best to determine the relevant information about a
 bird from the audio file itself, avoiding the tedious process of creating
@@ -28,12 +28,12 @@ A playlist is a set of songs to be studied as a group. The group could be
 for a particular location and time of year, or just birds that are easily
 confused with one another, such as many North American warblers.
 
-![Choosing a playlist](/docs/screenshots/playlists.png?raw=true)
+<img src="/docs/screenshots/playlists.png" width="250">
 
 Playlists are played in random order. The app keeps track of which songs
 are identified incorrectly and plays them more often.
 
-![Playing a playlist](/docs/screenshots/play_playlist.png?raw=true)
+<img src="/docs/screenshots/play_playlist.png" width="250">
 
 ### Creating Playlists over USB
 
@@ -49,7 +49,7 @@ Mockingbird folder on your phone is enough to create a playlist.
 Songs can also be added from the Android *Downloads* folder or from
 [Xeno-Canto](http://www.xeno-canto.org/).
 
-![Search Xeno-Canto](/docs/screenshots/search_xeno-canto.png?raw=true)
+<img src="/docs/screenshots/search_xeno-canto.png" width="250">
 
 Unfortunately, Xeno-Canto does not provide a nice way of generating search
 suggestions from within an app, and it was necessary to reverse engineer
@@ -61,7 +61,7 @@ only English common names are supported.
 Playlists can be renamed and deleted from within Mockingbird. It is also
 possible to remove a song from a playlist.
 
-![Playing a playlist](/docs/screenshots/edit_playlist.png?raw=true)
+<img src="/docs/screenshots/edit_playlist.png" width="250">
 
 ## Development Notes
 
