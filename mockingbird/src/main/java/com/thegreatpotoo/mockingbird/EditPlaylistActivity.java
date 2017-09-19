@@ -34,10 +34,8 @@ import android.widget.ListView;
 
 import java.io.IOException;
 
-public class EditPlaylistActivity extends AppCompatActivity
-        implements AudioManager.OnAudioFocusChangeListener {
+public class EditPlaylistActivity extends MockingbirdAudioActivity {
 
-    private MediaPlayer mediaPlayer;
     private Playlist playlist;
     private int selectedSong;
     private ArrayAdapter<Playlist.PlaylistSong> adapter;
@@ -45,45 +43,11 @@ public class EditPlaylistActivity extends AppCompatActivity
     private MockingbirdDatabase mockingbirdDatabase;
 
     @Override
-    public void onAudioFocusChange(int focusChange) {
-        switch (focusChange) {
-            case AudioManager.AUDIOFOCUS_GAIN:
-                if (mediaPlayer == null) {
-                    playSong();
-                } else if (!mediaPlayer.isPlaying()) {
-                    mediaPlayer.start();
-                } else {
-                    mediaPlayer.setVolume(1.0f, 1.0f);
-                }
-                break;
-
-            case AudioManager.AUDIOFOCUS_LOSS:
-                if (mediaPlayer != null) {
-                    mediaPlayer.release();
-                    mediaPlayer = null;
-                }
-                break;
-
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                    mediaPlayer.pause();
-                }
-                break;
-
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                // Lost focus for a short time, but it's ok to keep playing
-                // at an attenuated level
-                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                    mediaPlayer.setVolume(0.1f, 0.1f);
-                }
-                break;
-        }
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_playlist);
+
+        currentlyPlaying = true;
 
         mockingbirdDatabase = new MockingbirdDatabase(this);
 
@@ -208,7 +172,6 @@ public class EditPlaylistActivity extends AppCompatActivity
 
     @Override
     public void onPause() {
-        super.onPause();
         if (mediaPlayer != null) {
             if (mediaPlayer.isPlaying()) {
                 mediaPlayer.stop();
@@ -218,13 +181,9 @@ public class EditPlaylistActivity extends AppCompatActivity
                     playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.play_label);
                 }
             }
-
-            mediaPlayer.release();
-            mediaPlayer = null;
         }
 
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        audioManager.abandonAudioFocus(this);
+        super.onPause();
     }
 
     @Override
@@ -238,28 +197,13 @@ public class EditPlaylistActivity extends AppCompatActivity
         });
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        audioManager.abandonAudioFocus(this);
-
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-        }
-    }
-
-    private void playSong() {
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN);
-
-        if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            return;
+    protected boolean playSong() {
+        if (!super.playSong()) {
+            return false;
         }
 
         if (selectedSong == -1) {
-            return;
+            return false;
         }
 
         if (mediaPlayer == null) {
@@ -276,7 +220,7 @@ public class EditPlaylistActivity extends AppCompatActivity
             mediaPlayer.setDataSource(this, song.uri);
             mediaPlayer.prepare();
         } catch (IOException e) {
-            return;
+            return false;
         }
 
         mediaPlayer.start();
@@ -289,5 +233,7 @@ public class EditPlaylistActivity extends AppCompatActivity
                 }
             });
         }
+
+        return true;
     }
 }

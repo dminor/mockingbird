@@ -53,8 +53,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
-public class XenoCantoActivity extends AppCompatActivity
-        implements AudioManager.OnAudioFocusChangeListener {
+public class XenoCantoActivity extends MockingbirdAudioActivity {
 
     private ArrayList<XenoCanto.SearchResult> searchResults;
     private int currentSearchResult;
@@ -62,49 +61,14 @@ public class XenoCantoActivity extends AppCompatActivity
 
     private XenoCantoSuggestionsAdapter suggestionsAdapter;
 
-    private MediaPlayer mediaPlayer;
     private String playlistPath;
-
-    @Override
-    public void onAudioFocusChange(int focusChange) {
-        switch (focusChange) {
-            case AudioManager.AUDIOFOCUS_GAIN:
-                if (mediaPlayer == null) {
-                    playSong();
-                } else if (!mediaPlayer.isPlaying()) {
-                    mediaPlayer.start();
-                } else {
-                    mediaPlayer.setVolume(1.0f, 1.0f);
-                }
-                break;
-
-            case AudioManager.AUDIOFOCUS_LOSS:
-                if (mediaPlayer != null) {
-                    mediaPlayer.release();
-                    mediaPlayer = null;
-                }
-                break;
-
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                    mediaPlayer.pause();
-                }
-                break;
-
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                // Lost focus for a short time, but it's ok to keep playing
-                // at an attenuated level
-                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                    mediaPlayer.setVolume(0.1f, 0.1f);
-                }
-                break;
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_xeno_canto);
+
+        currentlyPlaying = true;
 
         playlistPath = getIntent().getStringExtra("playlistPath");
 
@@ -230,37 +194,9 @@ public class XenoCantoActivity extends AppCompatActivity
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        if (mediaPlayer != null) {
-            if (mediaPlayer.isPlaying()) {
-                mediaPlayer.stop();
-            }
-
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
-
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        audioManager.abandonAudioFocus(this);
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         playSong();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        audioManager.abandonAudioFocus(this);
-
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
     }
 
     private void addToPlaylist() {
@@ -275,17 +211,13 @@ public class XenoCantoActivity extends AppCompatActivity
         dm.enqueue(request);
     }
 
-    private void playSong() {
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN);
-
-        if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            return;
+    protected boolean playSong() {
+        if (!super.playSong()) {
+            return false;
         }
 
         if (currentSearchResult == -1) {
-            return;
+            return false;
         }
 
         if (mediaPlayer == null) {
@@ -310,7 +242,7 @@ public class XenoCantoActivity extends AppCompatActivity
             mediaPlayer.setDataSource(this, song);
             mediaPlayer.prepareAsync();
         } catch (IOException e) {
-            return;
+            return false;
         }
 
         final Button playPauseButton = (Button) findViewById(R.id.xenoCantoPlayPauseButton);
@@ -321,5 +253,7 @@ public class XenoCantoActivity extends AppCompatActivity
                 }
             });
         }
+
+        return true;
     }
 }

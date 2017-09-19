@@ -22,8 +22,11 @@
         <activity android:name=".ChoosePlaylistActivity" />
         <activity android:name=".SettingsActivity" />
         <activity android:name=".XenoCantoActivity" />
-        <activity android:name=".EditPlaylistActivity" android:windowSoftInputMode="stateHidden"/>
-        <activity android:name=".DownloadsActivity"></activity>
+        <activity
+            android:name=".EditPlaylistActivity"
+            android:windowSoftInputMode="stateHidden" />
+        <activity android:name=".DownloadsActivity" />
+        <activity android:name=".MockingbirdAudioActivity"></activity>
     </application>
 
 </manifest>

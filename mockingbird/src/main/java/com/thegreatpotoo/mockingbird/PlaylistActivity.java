@@ -44,14 +44,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
-public class PlaylistActivity extends AppCompatActivity
-        implements AudioManager.OnAudioFocusChangeListener {
+public class PlaylistActivity extends MockingbirdAudioActivity {
 
     private Playlist playlist;
 
-    private MediaPlayer mediaPlayer;
     private String playlistPath;
-    private boolean currentlyPlaying;
     private int currentPosition;
 
     private TextToSpeech textToSpeech;
@@ -61,44 +58,6 @@ public class PlaylistActivity extends AppCompatActivity
     private boolean useBirdCodes;
 
     private MockingbirdDatabase mockingbirdDatabase;
-
-    @Override
-    public void onAudioFocusChange(int focusChange) {
-        switch (focusChange) {
-            case AudioManager.AUDIOFOCUS_GAIN:
-                if (currentlyPlaying) {
-                    if (mediaPlayer == null) {
-                        playSong();
-                    } else if (!mediaPlayer.isPlaying()) {
-                        mediaPlayer.start();
-                    } else {
-                        mediaPlayer.setVolume(1.0f, 1.0f);
-                    }
-                }
-                break;
-
-            case AudioManager.AUDIOFOCUS_LOSS:
-                if (mediaPlayer != null) {
-                    mediaPlayer.release();
-                    mediaPlayer = null;
-                }
-                break;
-
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                    mediaPlayer.pause();
-                }
-                break;
-
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                // Lost focus for a short time, but it's ok to keep playing
-                // at an attenuated level
-                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                    mediaPlayer.setVolume(0.1f, 0.1f);
-                }
-                break;
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -188,19 +147,13 @@ public class PlaylistActivity extends AppCompatActivity
 
     @Override
     public void onPause() {
-        super.onPause();
         if (mediaPlayer != null) {
             if (mediaPlayer.isPlaying()) {
                 currentPosition = mediaPlayer.getCurrentPosition();
-                mediaPlayer.stop();
             }
-
-            mediaPlayer.release();
-            mediaPlayer = null;
         }
 
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        audioManager.abandonAudioFocus(this);
+        super.onPause();
     }
 
     @Override
@@ -215,13 +168,6 @@ public class PlaylistActivity extends AppCompatActivity
             textToSpeech.stop();
         }
         super.onStop();
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        audioManager.abandonAudioFocus(this);
-
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
     }
 
     @Override
@@ -232,17 +178,14 @@ public class PlaylistActivity extends AppCompatActivity
         savedInstanceState.putInt("currentPosition", currentPosition);
     }
 
-    private void playSong() {
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN);
-
-        if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            return;
+    @Override
+    protected boolean playSong() {
+        if (!super.playSong()) {
+            return false;
         }
 
         if (!playlist.hasSongs()) {
-            return;
+            return false;
         }
 
         if (mediaPlayer == null) {
@@ -259,7 +202,7 @@ public class PlaylistActivity extends AppCompatActivity
             mediaPlayer.setDataSource(this, song.uri);
             mediaPlayer.prepare();
         } catch (IOException e) {
-            return;
+            return false;
         }
 
         mediaPlayer.seekTo(currentPosition);
@@ -414,6 +357,8 @@ public class PlaylistActivity extends AppCompatActivity
                 updatePlayPauseState();
             }
         });
+
+        return true;
     }
 
     private void updatePlayPauseState() {

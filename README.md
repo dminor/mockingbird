@@ -122,13 +122,12 @@ results.
 
 Although I think I'm done with Mockingbird, there are some nice to have
 features I may get to someday:
-* There is a lot of duplicated code with only small differences which handles
-playing songs in each activity. This should be refactored into a common base
-class.
 * It would be nice to be able to do some small edits to songs that have been
 downloaded, for instance to play only a subset of a song, apply a high pass
-filter to remove background noise, or normalize volume.
+filter to remove background noise, or normalize volume relative to other songs
+in the playlist.
 * It would be interesting to make it possible to view the sonogram of the song
 being played as a visual aid to help learn identification. This would require
-using a lower level interface to the audio data and would consume more battery.
+using a lower level interface to the audio data than MediaPlayer. It would
+also be harder on battery life.
 * The song randomization and learning model could almost certainly be improved.
