@@ -160,6 +160,7 @@ public class XenoCantoActivity extends AppCompatActivity
                 searchResults.clear();
                 searchResults.addAll(results);
                 searchAdapter.notifyDataSetChanged();
+                searchResultListView.setAdapter(searchAdapter);
             }
         }
 

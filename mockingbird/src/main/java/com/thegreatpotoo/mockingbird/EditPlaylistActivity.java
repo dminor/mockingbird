@@ -162,22 +162,26 @@ public class EditPlaylistActivity extends AppCompatActivity
         if (deleteSongButton != null) {
             deleteSongButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    new AlertDialog.Builder(context)
-                            .setMessage(R.string.delete_song_message)
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int whichButton) {
-                                    playlist.deleteSong(selectedSong);
-                                    adapter.notifyDataSetChanged();
-                                    selectedSong = -1;
+                    if (selectedSong != -1) {
+                        new AlertDialog.Builder(context)
+                                .setMessage(R.string.delete_song_message)
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        playlist.deleteSong(selectedSong);
+                                        adapter.notifyDataSetChanged();
+                                        songsListView.setAdapter(adapter);
+                                        selectedSong = -1;
 
-                                    if (mediaPlayer != null) {
-                                        mediaPlayer.release();
-                                        mediaPlayer = null;
-                                        playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.play_label);
+                                        if (mediaPlayer != null) {
+                                            mediaPlayer.release();
+                                            mediaPlayer = null;
+                                            playPauseButton.setText(com.thegreatpotoo.mockingbird.R.string.play_label);
+                                        }
                                     }
-                                }})
-                            .setNegativeButton(android.R.string.no, null).show();
+                                })
+                                .setNegativeButton(android.R.string.no, null).show();
+                    }
                 }
             });
         }

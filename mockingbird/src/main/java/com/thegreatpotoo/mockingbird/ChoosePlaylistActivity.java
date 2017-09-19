@@ -131,6 +131,7 @@ public class ChoosePlaylistActivity extends AppCompatActivity {
 
                         }
                         populateListView();
+                        playlistView.setAdapter(adapter);
                     }
                 }
             });
@@ -152,12 +153,13 @@ public class ChoosePlaylistActivity extends AppCompatActivity {
                                 .setIcon(android.R.drawable.ic_dialog_alert)
                                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int whichButton) {
-                                        String[] children = dir.list();
                                         for (String f: dir.list()) {
                                             new File(dir, f).delete();
                                         }
                                         dir.delete();
                                         playlistPath = null;
+                                        adapter.notifyDataSetChanged();
+                                        playlistView.setAdapter(adapter);
                                         populateListView();
                                     }})
                                 .setNegativeButton(android.R.string.no, null).show();
